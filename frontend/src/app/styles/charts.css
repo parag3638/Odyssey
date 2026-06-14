@@ -1,0 +1,214 @@
+/* ============================================================================
+   CHARTS — custom lightweight SVG (zero dependencies).
+   Powers <LineChart>, <Sparkline>, volume bars, crosshair tooltips.
+   Algorithms ported from design/fey-mockup.html. References #5/#10/#11.
+   ============================================================================ */
+
+.chartbox {
+  position: relative;
+  width: 100%;
+}
+.chartbox.grid {
+  border-radius: 10px;
+  background-image: radial-gradient(var(--line-2) 1px, transparent 1px);
+  background-size: 17px 17px;
+  background-position: center;
+}
+.chartbox svg.cl-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  display: block;
+}
+
+/* paths */
+.cl-line {
+  fill: none;
+  stroke: var(--chart);
+  stroke-width: 1.7;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+.cl-line.now {
+  stroke-width: 1.8;
+}
+.cl-area {
+  stroke: none;
+}
+.cl-base {
+  stroke: var(--text-3);
+  stroke-width: 1;
+  stroke-dasharray: 2 4;
+  opacity: 0.6;
+}
+.cl-grid {
+  stroke: var(--line-2);
+  stroke-dasharray: 2 5;
+}
+
+/* draw-on animation */
+.cl-draw {
+  stroke-dasharray: 4000;
+  stroke-dashoffset: 4000;
+  animation: draw 1.7s var(--ease) 0.1s forwards;
+}
+
+/* volume bars */
+.cl-vol rect {
+  fill: var(--vol);
+}
+
+/* crosshair + marker */
+.cl-cross {
+  stroke: var(--text-2);
+  stroke-width: 1;
+  opacity: 0.5;
+}
+.cl-dot {
+  stroke: var(--bg);
+  stroke-width: 2;
+}
+
+/* floating labels */
+.cl-date {
+  position: absolute;
+  top: -2px;
+  transform: translateX(-50%);
+  color: var(--text-2);
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.cl-pct {
+  position: absolute;
+  right: 0;
+  font-size: 12.5px;
+  font-weight: 600;
+  transform: translateY(-50%);
+  background: var(--bg);
+  padding: 1px 6px;
+  border-radius: 5px;
+  pointer-events: none;
+}
+.cl-close {
+  position: absolute;
+  left: 6px;
+  font-size: 10.5px;
+  color: var(--text-3);
+  background: var(--bg);
+  padding: 1px 6px;
+  border-radius: 5px;
+  transform: translateY(-50%);
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* tooltip */
+.cl-tip {
+  position: absolute;
+  background: var(--card-3);
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  padding: 10px 13px;
+  min-width: 178px;
+  pointer-events: none;
+  box-shadow: var(--shadow);
+  z-index: 5;
+}
+.cl-tip .dt {
+  color: var(--text-2);
+  font-size: 11px;
+  margin-bottom: 8px;
+}
+.cl-tip .row {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  margin-top: 5px;
+  font-size: 12.5px;
+  align-items: center;
+}
+.cl-tip .row .k {
+  color: var(--text-2);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.cl-tip .row .k::before {
+  content: "";
+  width: 3px;
+  height: 12px;
+  border-radius: 2px;
+  background: var(--kc, var(--text-2));
+}
+.cl-tip .row .v {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* axis labels under perf chart */
+.cl-axis {
+  display: flex;
+  justify-content: space-between;
+  color: var(--text-3);
+  font-size: 11.5px;
+  margin-top: 8px;
+}
+
+/* sparkline (table rows / bot rows) */
+.spark {
+  display: block;
+  flex: none;
+}
+.spark svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.spark path {
+  fill: none;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* mini bar chart (earnings "recent") */
+.barchart {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  height: 120px;
+}
+.barchart .col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  height: 100%;
+  justify-content: flex-end;
+}
+.barchart .bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 100%;
+}
+.barchart .bar {
+  width: 12px;
+  border-radius: 3px 3px 0 0;
+}
+.barchart .bar.est {
+  background: transparent;
+  border: 1px dashed var(--text-3);
+}
+.barchart .bar.act {
+  background: var(--text-2);
+}
+.barchart .lab {
+  color: var(--text-3);
+  font-size: 11px;
+}

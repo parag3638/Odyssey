@@ -58,6 +58,27 @@ htmlcov/
 !design/reference/**
 
 # =============================================================
+# Frontend (Next.js) — dependencies, build outputs, generated files
+# =============================================================
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/build/
+frontend/.vercel/
+frontend/coverage/
+frontend/next-env.d.ts
+frontend/tsconfig.tsbuildinfo
+frontend/.env*
+!frontend/.env.example
+frontend/.pnp
+frontend/.pnp.*
+frontend/.yarn/*
+!frontend/.yarn/patches
+!frontend/.yarn/plugins
+!frontend/.yarn/releases
+!frontend/.yarn/versions
+
+# =============================================================
 # Logs
 # =============================================================
 logs

@@ -1,0 +1,113 @@
+/* ============================================================================
+   FEY DESIGN TOKENS
+   The single source of truth for color, depth, radius, and motion.
+   Dark is the default; light is a first-class peer (see reference image #6).
+   Documented in design/DESIGN_SYSTEM.md — keep the two in sync.
+   ============================================================================ */
+
+:root,
+[data-theme="dark"] {
+  /* ---- surfaces (near-black, layered up) ---- */
+  --bg: #060607;
+  --tint: rgba(52, 211, 153, 0.05); /* emerald top-glow */
+  --panel: #0b0b0d;
+  --card: #0f0f12;
+  --card-2: #15151a;
+  --card-3: #1c1c22;
+
+  /* ---- hairlines ---- */
+  --line: rgba(255, 255, 255, 0.07);
+  --line-2: rgba(255, 255, 255, 0.045);
+  --active: rgba(255, 255, 255, 0.09);
+
+  /* ---- text ramp (100 / 60 / 30%) ---- */
+  --text: #f4f4f6;
+  --text-2: #8b8b92;
+  --text-3: #56565d;
+  --dim: #6a6a72;
+
+  /* ---- semantic gain / loss ---- */
+  --gain: #34d399;
+  --gain-bg: rgba(52, 211, 153, 0.13);
+  --gain-bd: rgba(52, 211, 153, 0.3);
+  --loss: #f0616b;
+  --loss-bg: rgba(240, 97, 107, 0.13);
+  --loss-bd: rgba(240, 97, 107, 0.3);
+
+  /* ---- chart ---- */
+  --chart: #e8e8ec; /* neutral "past" line */
+  --area1: rgba(255, 255, 255, 0.1);
+  --area0: rgba(255, 255, 255, 0);
+  --vol: rgba(255, 255, 255, 0.1);
+
+  /* ---- depth ---- */
+  --shadow: 0 18px 50px -16px rgba(0, 0, 0, 0.7);
+  --shadow-sm: 0 6px 18px -10px rgba(0, 0, 0, 0.6);
+
+  /* ---- focus ring ---- */
+  --ring: color-mix(in srgb, var(--gain) 55%, transparent);
+
+  color-scheme: dark;
+}
+
+[data-theme="light"] {
+  --bg: #f3f3f1;
+  --tint: transparent;
+  --panel: #ffffff;
+  --card: #ffffff;
+  --card-2: #f0efec;
+  --card-3: #e8e7e3;
+
+  --line: rgba(0, 0, 0, 0.085);
+  --line-2: rgba(0, 0, 0, 0.05);
+  --active: rgba(0, 0, 0, 0.06);
+
+  --text: #101012;
+  --text-2: #6c6c72;
+  --text-3: #9a9aa0;
+  --dim: #aeaeb4;
+
+  --gain: #1f9d57;
+  --gain-bg: rgba(31, 157, 87, 0.11);
+  --gain-bd: rgba(31, 157, 87, 0.3);
+  --loss: #df564f;
+  --loss-bg: rgba(223, 86, 79, 0.1);
+  --loss-bd: rgba(223, 86, 79, 0.3);
+
+  --chart: #16161a;
+  --area1: rgba(0, 0, 0, 0.07);
+  --area0: rgba(0, 0, 0, 0);
+  --vol: rgba(0, 0, 0, 0.1);
+
+  --shadow: 0 14px 40px -16px rgba(0, 0, 0, 0.18);
+  --shadow-sm: 0 6px 16px -12px rgba(0, 0, 0, 0.22);
+
+  --ring: color-mix(in srgb, var(--gain) 60%, transparent);
+
+  color-scheme: light;
+}
+
+/* ---- scale tokens (theme-independent) ---- */
+:root {
+  /* radius */
+  --r-1: 8px;
+  --r-2: 11px;
+  --r-3: 14px;
+  --r-4: 18px;
+  --r-pill: 999px;
+
+  /* motion */
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-1: 0.12s;
+  --dur-2: 0.18s;
+  --dur-3: 0.35s;
+
+  /* account-type icon-tile hues (reference image #6) */
+  --tile-red: #ff6b5d;
+  --tile-amber: #d8b24a;
+  --tile-violet: #8b7bf0;
+  --tile-blue: #5b8def;
+  --tile-green: #34d399;
+  --tile-teal: #2dd4bf;
+}
