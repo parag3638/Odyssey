@@ -1,7 +1,0 @@
-pyproject.toml
-app/__init__.py
-fey.egg-info/PKG-INFO
-fey.egg-info/SOURCES.txt
-fey.egg-info/dependency_links.txt
-fey.egg-info/requires.txt
-fey.egg-info/top_level.txt
