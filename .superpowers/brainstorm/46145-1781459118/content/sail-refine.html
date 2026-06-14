@@ -1,0 +1,132 @@
+<h2>Sail it is — now let's lock the exact mark</h2>
+<p class="subtitle">
+  Four executions of the sail. Same nav-tile + wordmark + favicon-size preview as before, on the real
+  Odyssey dark theme. The big question: <b>full boat vs. just a sail</b>, <b>soft vs. sharp</b>, and
+  <b>monochrome vs. an emerald accent</b>. Click the one you want (we can still tweak weight/curve after).
+</p>
+
+<style>
+  .lock{ display:flex; align-items:center; gap:13px; background:#060607; border-radius:12px;
+    padding:16px 18px; position:relative; overflow:hidden; }
+  .lock::before{ content:""; position:absolute; inset:0;
+    background:radial-gradient(380px 160px at 28% -45%, rgba(52,211,153,.10), transparent 70%); pointer-events:none; }
+  .tile{ width:46px; height:46px; border-radius:12px; background:#15151a; border:1px solid rgba(255,255,255,.08);
+    display:grid; place-items:center; flex:none; position:relative; z-index:1; }
+  .wm{ font-size:20px; font-weight:600; letter-spacing:-.02em; color:#f4f4f6; flex:1; z-index:1; }
+  .fav{ width:22px; height:22px; border-radius:6px; background:#0b0b0d; display:grid; place-items:center;
+    flex:none; z-index:1; border:1px solid rgba(255,255,255,.06); }
+  .concept-name{ display:flex; align-items:center; gap:8px; }
+  .concept-name .em{ color:#34d399; font-size:12px; font-weight:500; }
+</style>
+
+<div class="cards">
+
+  <div class="card" data-choice="boat" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:0;background:transparent;">
+      <div class="lock">
+        <span class="tile">
+          <svg viewBox="0 0 24 24" width="27" height="27" fill="#f4f4f6" stroke="#f4f4f6" stroke-width="1.1" stroke-linejoin="round">
+            <path d="M12.7 2.6 C 16.6 6.6 18.2 11 18.2 14.6 L 12.7 14.6 Z"/>
+            <path d="M5 17 H19 L17 20.4 H7 Z"/>
+          </svg>
+        </span>
+        <span class="wm">Odyssey</span>
+        <span class="fav">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="#f4f4f6" stroke="#f4f4f6" stroke-width="1" stroke-linejoin="round">
+            <path d="M12.7 2.6 C 16.6 6.6 18.2 11 18.2 14.6 L 12.7 14.6 Z"/>
+            <path d="M5 17 H19 L17 20.4 H7 Z"/>
+          </svg>
+        </span>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3 class="concept-name">A · Full boat <span class="em">most literal</span></h3>
+      <p>Billowing sail above a hull. Reads unmistakably as a ship — the most narrative, but the most detail to hold together at favicon size.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="sail-wave" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:0;background:transparent;">
+      <div class="lock">
+        <span class="tile">
+          <svg viewBox="0 0 24 24" width="27" height="27" fill="none" stroke="#f4f4f6" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2.8 C 16.2 6.8 18.2 11.6 18.2 15.4 L 12 15.4 Z" fill="#f4f4f6" stroke="none"/>
+            <path d="M12 2.8 V 15.4"/>
+            <path d="M4 19 C 6.2 20.5 8.4 20.5 10.6 19.2 C 12.8 17.9 15 17.9 17.2 19.4 C 18.4 20.2 19.4 20.3 20 19.9"/>
+          </svg>
+        </span>
+        <span class="wm">Odyssey</span>
+        <span class="fav">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="#f4f4f6" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2.8 C 16.2 6.8 18.2 11.6 18.2 15.4 L 12 15.4 Z" fill="#f4f4f6" stroke="none"/>
+            <path d="M12 2.8 V 15.4"/>
+            <path d="M4 19 C 6.4 20.6 8.6 20.5 10.8 19.2 C 13 17.9 15.2 18 17.4 19.5"/>
+          </svg>
+        </span>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3 class="concept-name">B · Sail + wave <span class="em">cleaner voyage</span></h3>
+      <p>A single billowing sail riding a wave — drops the hull for a calmer, more iconic shape. Still clearly a voyage; scales better than the full boat.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="twin" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:0;background:transparent;">
+      <div class="lock">
+        <span class="tile">
+          <svg viewBox="0 0 24 24" width="27" height="27">
+            <path d="M10.7 3 L10.7 15.5 L4 15.5 Z" fill="#f4f4f6"/>
+            <path d="M13.3 3 L13.3 15.5 L20 15.5 Z" fill="#f4f4f6"/>
+            <path d="M3 18.7 H21" stroke="#f4f4f6" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+          </svg>
+        </span>
+        <span class="wm">Odyssey</span>
+        <span class="fav">
+          <svg viewBox="0 0 24 24" width="15" height="15">
+            <path d="M10.7 3 L10.7 15.5 L4 15.5 Z" fill="#f4f4f6"/>
+            <path d="M13.3 3 L13.3 15.5 L20 15.5 Z" fill="#f4f4f6"/>
+            <path d="M3 18.7 H21" stroke="#f4f4f6" stroke-width="2" stroke-linecap="round" fill="none"/>
+          </svg>
+        </span>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3 class="concept-name">C · Twin sails <span class="em">modern / sharp</span></h3>
+      <p>Two crisp triangular sails over a waterline — geometric, dynamic, leaning forward. Most "fintech," most distinctive small, least literal.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="emerald" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:0;background:transparent;">
+      <div class="lock">
+        <span class="tile">
+          <svg viewBox="0 0 24 24" width="27" height="27">
+            <path d="M10.7 3 L10.7 15.5 L4 15.5 Z" fill="#f4f4f6"/>
+            <path d="M13.3 3 L13.3 15.5 L20 15.5 Z" fill="#34d399"/>
+            <path d="M3 18.7 H21" stroke="#f4f4f6" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+          </svg>
+        </span>
+        <span class="wm">Odyssey</span>
+        <span class="fav">
+          <svg viewBox="0 0 24 24" width="15" height="15">
+            <path d="M10.7 3 L10.7 15.5 L4 15.5 Z" fill="#f4f4f6"/>
+            <path d="M13.3 3 L13.3 15.5 L20 15.5 Z" fill="#34d399"/>
+            <path d="M3 18.7 H21" stroke="#f4f4f6" stroke-width="2" stroke-linecap="round" fill="none"/>
+          </svg>
+        </span>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3 class="concept-name">D · Twin sails + emerald <span class="em">brand accent</span></h3>
+      <p>Same twin-sail shape with the main sail in your <code>--gain</code> emerald. Ties the mark to the brand color. Tradeoff: it stops being a single <code>currentColor</code> glyph — needs a tiny tweak so it still works in light theme.</p>
+    </div>
+  </div>
+
+</div>
+
+<p class="subtitle" style="margin-top:18px;">
+  Once you pick, I'll fine-tune the curve/weight, then wire it in everywhere the old flame lives:
+  the <code>FlameIcon</code> glyph (Nav, page headers, news/screener), the <code>.flame</code> tile,
+  and the browser-tab favicon in <code>layout.tsx</code>.
+</p>

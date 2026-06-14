@@ -1,0 +1,174 @@
+- generic [active] [ref=e1]:
+  - complementary [ref=e2]:
+    - img [ref=e4]
+    - button "Home" [ref=e6] [cursor=pointer]:
+      - img [ref=e7]
+    - button "Stocks" [ref=e10] [cursor=pointer]:
+      - img [ref=e11]
+    - button "Watchlist" [ref=e13] [cursor=pointer]:
+      - img [ref=e14]
+    - button "Positions" [ref=e17] [cursor=pointer]:
+      - img [ref=e18]
+    - button "Signals" [ref=e20] [cursor=pointer]:
+      - img [ref=e21]
+    - button "Activity" [ref=e23] [cursor=pointer]:
+      - img [ref=e24]
+    - button "Search" [ref=e27] [cursor=pointer]:
+      - img [ref=e28]
+    - generic "Paper account" [ref=e31]
+    - button "MY" [ref=e33] [cursor=pointer]
+  - generic [ref=e34]:
+    - generic [ref=e35]: Good Evening, Odyssey
+    - generic [ref=e36]:
+      - generic [ref=e37]:
+        - generic [ref=e39]:
+          - button "Hide balance" [ref=e43] [cursor=pointer]:
+            - img [ref=e44]
+          - img "Portfolio value over time (illustrative)" [ref=e50]:
+            - img [ref=e51]
+          - generic [ref=e56]:
+            - button "1D" [ref=e57] [cursor=pointer]
+            - button "1W" [ref=e58] [cursor=pointer]
+            - button "1M" [ref=e59] [cursor=pointer]
+            - button "3M" [ref=e60] [cursor=pointer]
+            - button "6M" [ref=e61] [cursor=pointer]
+            - button "YTD" [ref=e62] [cursor=pointer]
+            - button "1Y" [ref=e63] [cursor=pointer]
+            - button "ALL" [ref=e64] [cursor=pointer]
+        - generic [ref=e66]:
+          - generic [ref=e70]: Portfolio value
+          - generic [ref=e74]: Today's return
+          - generic [ref=e78]: All-time return
+          - generic [ref=e82]: Cash available
+        - generic [ref=e84]:
+          - generic [ref=e85]: Asset breakdown
+          - generic [ref=e86]: Your allocation appears once you hold positions.
+        - generic [ref=e87]:
+          - heading "Stocks" [level=2] [ref=e88]
+          - link "Browse all →" [ref=e89] [cursor=pointer]:
+            - /url: /stocks
+        - table [ref=e91]:
+          - rowgroup [ref=e92]:
+            - row "Company · 0 ↕ Price ↕ 1D ↕ Mkt cap ↓" [ref=e93]:
+              - columnheader [ref=e94]
+              - columnheader "Company · 0 ↕" [ref=e95] [cursor=pointer]:
+                - text: Company
+                - generic [ref=e96]: · 0
+                - generic: ↕
+              - columnheader "Price ↕" [ref=e97] [cursor=pointer]:
+                - text: Price
+                - generic: ↕
+              - columnheader "1D ↕" [ref=e98] [cursor=pointer]:
+                - text: 1D
+                - generic: ↕
+              - columnheader "Mkt cap ↓" [ref=e99] [cursor=pointer]:
+                - text: Mkt cap
+                - generic [ref=e100]: ↓
+          - rowgroup [ref=e101]:
+            - row [ref=e102]:
+              - cell [ref=e103]
+              - cell [ref=e105]
+              - cell [ref=e107]
+              - cell [ref=e109]
+              - cell [ref=e111]
+            - row [ref=e113]:
+              - cell [ref=e114]
+              - cell [ref=e116]
+              - cell [ref=e118]
+              - cell [ref=e120]
+              - cell [ref=e122]
+            - row [ref=e124]:
+              - cell [ref=e125]
+              - cell [ref=e127]
+              - cell [ref=e129]
+              - cell [ref=e131]
+              - cell [ref=e133]
+            - row [ref=e135]:
+              - cell [ref=e136]
+              - cell [ref=e138]
+              - cell [ref=e140]
+              - cell [ref=e142]
+              - cell [ref=e144]
+            - row [ref=e146]:
+              - cell [ref=e147]
+              - cell [ref=e149]
+              - cell [ref=e151]
+              - cell [ref=e153]
+              - cell [ref=e155]
+      - complementary [ref=e157]:
+        - generic [ref=e158]:
+          - button "New order" [ref=e159] [cursor=pointer]:
+            - img [ref=e160]
+            - generic [ref=e162]: New order
+          - button "New bot" [ref=e163] [cursor=pointer]:
+            - img [ref=e164]
+            - generic [ref=e166]: New bot
+        - generic [ref=e167]:
+          - generic [ref=e169]: Active bots · 2
+          - link "Trailing-stop · AAPL active" [ref=e170] [cursor=pointer]:
+            - /url: /bots/1
+            - generic [ref=e172]: Trailing-stop · AAPL
+            - generic [ref=e173]: active
+          - link "Copy-trade · copy Edward Case active" [ref=e174] [cursor=pointer]:
+            - /url: /bots/2
+            - generic [ref=e176]: Copy-trade · copy Edward Case
+            - generic [ref=e177]: active
+        - generic [ref=e178]:
+          - generic [ref=e179]:
+            - tablist [ref=e180]:
+              - tab "Holdings" [selected] [ref=e181] [cursor=pointer]
+              - tab "Watchlist" [ref=e182] [cursor=pointer]
+            - generic "Expand":
+              - img
+          - generic [ref=e184]: No holdings yet.
+        - generic [ref=e185]:
+          - generic [ref=e186]:
+            - generic [ref=e187]: 1 of 2
+            - generic [ref=e188]:
+              - button "Previous" [ref=e189] [cursor=pointer]:
+                - img [ref=e190]
+              - button "Next" [ref=e192] [cursor=pointer]:
+                - img [ref=e193]
+          - generic [ref=e195]: Automate a trailing stop
+          - generic [ref=e196]: Let a bot follow a stock up and lock in gains with a moving floor.
+          - img [ref=e198]
+        - generic [ref=e200]:
+          - generic [ref=e202]: Market movers
+          - generic [ref=e203]: ▲ Gainers
+          - generic [ref=e204]: ▼ Losers
+        - generic [ref=e205]:
+          - generic [ref=e206]:
+            - generic [ref=e207]: Politician trades
+            - generic [ref=e208] [cursor=pointer]: All →
+          - generic [ref=e209] [cursor=pointer]:
+            - generic [ref=e210]: RK
+            - generic [ref=e211]: Rohit Khanna
+            - generic [ref=e212]: COF
+            - generic [ref=e213]: BUY
+          - generic [ref=e214] [cursor=pointer]:
+            - generic [ref=e215]: RK
+            - generic [ref=e216]: Rohit Khanna
+            - generic [ref=e217]: ALLY
+            - generic [ref=e218]: BUY
+          - generic [ref=e219] [cursor=pointer]:
+            - generic [ref=e220]: RK
+            - generic [ref=e221]: Rohit Khanna
+            - generic [ref=e222]: JPM
+            - generic [ref=e223]: BUY
+          - generic [ref=e224] [cursor=pointer]:
+            - generic [ref=e225]: RK
+            - generic [ref=e226]: Rohit Khanna
+            - generic [ref=e227]: ISRG
+            - generic [ref=e228]: BUY
+          - generic [ref=e229] [cursor=pointer]:
+            - generic [ref=e230]: CR
+            - generic [ref=e231]: Charles Roy
+            - generic [ref=e232]: AESI
+            - generic [ref=e233]: SELL
+          - generic [ref=e234] [cursor=pointer]:
+            - generic [ref=e235]: JM
+            - generic [ref=e236]: John McGuire
+            - generic [ref=e237]: META
+            - generic [ref=e238]: BUY
+    - generic [ref=e239]: Fey · research terminal · paper trading · prices live · fundamentals via Finnhub
+  - alert [ref=e240]

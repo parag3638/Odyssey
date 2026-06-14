@@ -1,0 +1,109 @@
+- generic [active] [ref=e1]:
+  - complementary [ref=e2]:
+    - img [ref=e4]
+    - button "Home" [ref=e6] [cursor=pointer]:
+      - img [ref=e7]
+    - button "Stocks" [ref=e10] [cursor=pointer]:
+      - img [ref=e11]
+    - button "Watchlist" [ref=e13] [cursor=pointer]:
+      - img [ref=e14]
+    - button "Positions" [ref=e17] [cursor=pointer]:
+      - img [ref=e18]
+    - button "Signals" [ref=e20] [cursor=pointer]:
+      - img [ref=e21]
+    - button "Activity" [ref=e23] [cursor=pointer]:
+      - img [ref=e24]
+    - button "Search" [ref=e27] [cursor=pointer]:
+      - img [ref=e28]
+    - generic "Paper account" [ref=e31]
+    - button "MY" [ref=e33] [cursor=pointer]
+  - generic [ref=e34]:
+    - generic [ref=e35]:
+      - img [ref=e37]
+      - generic [ref=e39]: Positions
+      - generic [ref=e40]: paper account
+    - generic [ref=e42]:
+      - generic [ref=e46]: Total value
+      - generic [ref=e50]: Today's return
+      - generic [ref=e54]: All-time return
+      - generic [ref=e58]: Cash available
+    - generic [ref=e60]:
+      - generic [ref=e61]:
+        - tablist "Holdings or watchlist" [ref=e62]:
+          - tab "Holdings" [selected] [ref=e63] [cursor=pointer]
+          - tab "Watchlist" [ref=e64] [cursor=pointer]
+        - button "Customize columns" [ref=e67] [cursor=pointer]:
+          - img [ref=e68]
+      - table [ref=e72]:
+        - rowgroup [ref=e73]:
+          - row "Holdings ↕ Account Allocation ↕ Quantity ↕ Price ↕ Today's return ↕ Total value ↓ All-time return ↕" [ref=e74]:
+            - columnheader "Holdings ↕" [ref=e75] [cursor=pointer]:
+              - text: Holdings
+              - generic: ↕
+            - columnheader "Account" [ref=e76]
+            - columnheader "Allocation ↕" [ref=e77] [cursor=pointer]:
+              - text: Allocation
+              - generic: ↕
+            - columnheader "Quantity ↕" [ref=e78] [cursor=pointer]:
+              - text: Quantity
+              - generic: ↕
+            - columnheader "Price ↕" [ref=e79] [cursor=pointer]:
+              - text: Price
+              - generic: ↕
+            - columnheader "Today's return ↕" [ref=e80] [cursor=pointer]:
+              - text: Today's return
+              - generic: ↕
+            - columnheader "Total value ↓" [ref=e81] [cursor=pointer]:
+              - text: Total value
+              - generic [ref=e82]: ↓
+            - columnheader "All-time return ↕" [ref=e83] [cursor=pointer]:
+              - text: All-time return
+              - generic: ↕
+        - rowgroup [ref=e84]:
+          - row [ref=e85]:
+            - cell [ref=e86]
+            - cell [ref=e88]
+            - cell [ref=e90]
+            - cell [ref=e92]
+            - cell [ref=e94]
+            - cell [ref=e96]
+            - cell [ref=e98]
+            - cell [ref=e100]
+          - row [ref=e102]:
+            - cell [ref=e103]
+            - cell [ref=e105]
+            - cell [ref=e107]
+            - cell [ref=e109]
+            - cell [ref=e111]
+            - cell [ref=e113]
+            - cell [ref=e115]
+            - cell [ref=e117]
+          - row [ref=e119]:
+            - cell [ref=e120]
+            - cell [ref=e122]
+            - cell [ref=e124]
+            - cell [ref=e126]
+            - cell [ref=e128]
+            - cell [ref=e130]
+            - cell [ref=e132]
+            - cell [ref=e134]
+          - row [ref=e136]:
+            - cell [ref=e137]
+            - cell [ref=e139]
+            - cell [ref=e141]
+            - cell [ref=e143]
+            - cell [ref=e145]
+            - cell [ref=e147]
+            - cell [ref=e149]
+            - cell [ref=e151]
+          - row [ref=e153]:
+            - cell [ref=e154]
+            - cell [ref=e156]
+            - cell [ref=e158]
+            - cell [ref=e160]
+            - cell [ref=e162]
+            - cell [ref=e164]
+            - cell [ref=e166]
+            - cell [ref=e168]
+    - generic [ref=e170]: Fey · paper trading · Positions
+  - alert [ref=e171]
