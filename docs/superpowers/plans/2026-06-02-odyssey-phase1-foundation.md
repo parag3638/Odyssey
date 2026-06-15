@@ -1,14 +1,14 @@
-# Fey Phase 1 — Foundation Implementation Plan
+# Odyssey Phase 1 — Foundation Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Prove Fey's Alpaca paper-trading money-path end-to-end — a manual "buy N shares of SYMBOL" flows through a risk chokepoint, a swappable broker adapter, into Postgres, and is visible on a Next.js dashboard with a PAPER badge.
+**Goal:** Prove Odyssey's Alpaca paper-trading money-path end-to-end — a manual "buy N shares of SYMBOL" flows through a risk chokepoint, a swappable broker adapter, into Postgres, and is visible on a Next.js dashboard with a PAPER badge.
 
 **Architecture:** FastAPI backend with a pure risk layer and a broker-adapter interface (Alpaca impl + in-memory fake for tests); SQLAlchemy/Alembic on Postgres for persistence; a thin Next.js dashboard that only calls the REST API. Secrets are encrypted at rest and never sent to the frontend.
 
 **Tech Stack:** Python 3.12, FastAPI, SQLAlchemy 2.0, Alembic, pydantic-settings, alpaca-py, cryptography (Fernet), pytest + httpx; Next.js (App Router, TypeScript); Postgres 16 via docker-compose.
 
-**Design source of truth:** `design/fey-mockup.html` is the LOCKED, approved visual reference — a self-contained static implementation of Fey's full design system (near-monochrome dark+light themes, Geist type, green/coral semantics, the responsive nav, dashboard, position detail, signals, activity, onboarding screens). Phase-1 frontend work ports its CSS tokens and core components verbatim, then wires the Overview to the real API. Pixel-level polish is intentionally deferred to refinement against the running app (per design decision). Component/token details live in `[[fey-design-foundation]]` memory.
+**Design source of truth:** `design/odyssey-mockup.html` is the LOCKED, approved visual reference — a self-contained static implementation of Odyssey's full design system (near-monochrome dark+light themes, Geist type, green/coral semantics, the responsive nav, dashboard, position detail, signals, activity, onboarding screens). Phase-1 frontend work ports its CSS tokens and core components verbatim, then wires the Overview to the real API. Pixel-level polish is intentionally deferred to refinement against the running app (per design decision). Component/token details live in `[[odyssey-design-foundation]]` memory.
 
 ---
 
@@ -90,7 +90,7 @@ ALPACA_ENDPOINT=https://paper-api.alpaca.markets
 
 ```toml
 [project]
-name = "fey"
+name = "odyssey"
 version = "0.1.0"
 requires-python = ">=3.12"
 dependencies = [
@@ -141,7 +141,7 @@ Expected: installs without error; `pytest --version` works.
 
 ```bash
 git init  # only if a repo is desired; skip if not using git
-git add . && git commit -m "chore: scaffold Fey backend, Postgres, tooling"
+git add . && git commit -m "chore: scaffold Odyssey backend, Postgres, tooling"
 ```
 
 ---
@@ -1142,7 +1142,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.routers import health, accounts, orders, positions
 
-app = FastAPI(title="Fey")
+app = FastAPI(title="Odyssey")
 app.add_middleware(
     CORSMiddleware, allow_origins=["http://localhost:3000"],
     allow_methods=["*"], allow_headers=["*"],
@@ -1270,7 +1270,7 @@ git commit -m "feat: REST API (health, accounts, orders, positions) + integratio
 
 ## Task 10: Next.js dashboard — built to the locked design
 
-> **Design fidelity & stack (HYBRID):** Build to `design/fey-mockup.html`, the approved reference, using a **hybrid frontend stack**: **Tailwind CSS** for utilities/layout/responsive, but keep Fey's **custom design tokens** (port the mockup's `:root`/`[data-theme="light"]` CSS variables — colors, radii, shadows — into `globals.css` and expose them through `tailwind.config` `theme.extend`), and **hand-build the signature components** (the SVG charts with crosshair, the responsive nav, the dense tables) rather than using off-the-shelf components. **Do NOT use shadcn.** Load **Geist + Geist Mono**. Reproduce: responsive nav (left rail ≥1281px / labeled top bar ≤1280px), holdings `tcard` table with two-part return pills + circular logos, `pill`/`tag` styles, PAPER badge, masked-balance + eye toggle. Phase 1 ships the **Overview** screen wired to the real API (account, positions, manual order); Position-detail/Signals/Activity/Onboarding + bot UI land in later phases. The mockup's inline-styled `page.tsx` below is the *minimum* functional wiring — replace its look with the ported design system. Use the **vercel-react-best-practices**, **tailwind-css-patterns**, and **web-design-guidelines** skills while building.
+> **Design fidelity & stack (HYBRID):** Build to `design/odyssey-mockup.html`, the approved reference, using a **hybrid frontend stack**: **Tailwind CSS** for utilities/layout/responsive, but keep Odyssey's **custom design tokens** (port the mockup's `:root`/`[data-theme="light"]` CSS variables — colors, radii, shadows — into `globals.css` and expose them through `tailwind.config` `theme.extend`), and **hand-build the signature components** (the SVG charts with crosshair, the responsive nav, the dense tables) rather than using off-the-shelf components. **Do NOT use shadcn.** Load **Geist + Geist Mono**. Reproduce: responsive nav (left rail ≥1281px / labeled top bar ≤1280px), holdings `tcard` table with two-part return pills + circular logos, `pill`/`tag` styles, PAPER badge, masked-balance + eye toggle. Phase 1 ships the **Overview** screen wired to the real API (account, positions, manual order); Position-detail/Signals/Activity/Onboarding + bot UI land in later phases. The mockup's inline-styled `page.tsx` below is the *minimum* functional wiring — replace its look with the ported design system. Use the **vercel-react-best-practices**, **tailwind-css-patterns**, and **web-design-guidelines** skills while building.
 
 **Files:**
 - Create: `frontend/` (via create-next-app), `frontend/src/app/globals.css` (ported design tokens), `frontend/src/lib/api.ts`, `frontend/src/components/` (Nav, HoldingsTable, OrderForm, PaperBadge), `frontend/src/app/page.tsx`, `frontend/.env.local`
@@ -1350,7 +1350,7 @@ export default function Dashboard() {
 
   return (
     <main style={{ maxWidth: 680, margin: "40px auto", fontFamily: "system-ui" }}>
-      <h1>Fey <span style={{ background: "#fde68a", padding: "2px 8px", borderRadius: 6, fontSize: 14 }}>PAPER</span></h1>
+      <h1>Odyssey <span style={{ background: "#fde68a", padding: "2px 8px", borderRadius: 6, fontSize: 14 }}>PAPER</span></h1>
       <form onSubmit={submit} style={{ display: "flex", gap: 8, margin: "16px 0" }}>
         <input value={symbol} onChange={(e) => setSymbol(e.target.value.toUpperCase())} />
         <input type="number" min={1} value={qty} onChange={(e) => setQty(Number(e.target.value))} />

@@ -10,7 +10,7 @@ def _env():
     os.environ["DATABASE_URL"] = os.environ.get(
         "TEST_DATABASE_URL", "postgresql+psycopg://fey:fey@localhost:5432/fey_test")
     os.environ.setdefault("FERNET_KEY", Fernet.generate_key().decode())
-    os.environ["FEY_DISABLE_SCHEDULER"] = "1"
+    os.environ["ODYSSEY_DISABLE_SCHEDULER"] = "1"
 
 
 @pytest.fixture

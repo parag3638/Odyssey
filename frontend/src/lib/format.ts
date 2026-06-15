@@ -1,4 +1,4 @@
-/* Number & money formatting for the Fey UI.
+/* Number & money formatting for the Odyssey UI.
    Uses a real minus sign (−, U+2212) for negatives so figures align and read
    like the references. Cents are returned separately where the design dims them. */
 

@@ -1,10 +1,10 @@
-# Fey Phase 3 — Copy-Trade Implementation Plan
+# Odyssey Phase 3 — Copy-Trade Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: superpowers:subagent-driven-development. Steps use `- [ ]`. **No git — skip commits.** Backend tests: `cd /Users/parag.singh/Desktop/Fey/backend && .venv/bin/pytest <args> -v`.
+> **For agentic workers:** REQUIRED SUB-SKILL: superpowers:subagent-driven-development. Steps use `- [ ]`. **No git — skip commits.** Backend tests: `cd /Users/parag.singh/Desktop/Codes/Personal_Play/Odyssey/backend && .venv/bin/pytest <args> -v`.
 
 **Goal:** Mirror US-Congress disclosures from Capitol Trades. Add a `signals` table, a Capitol Trades fetch+parse layer (pure parse, fixture-tested), a sync service that upserts new signals, a pure copy-trade engine (dedupe by signal hash), a copy-trade bot runner reusing the Phase-1 risk chokepoint + order service, scheduler integration (copy ticks + a slower scraper job), bot-API support for `strategy_type="copy_trade"`, a `/signals` API, and the Signals screener UI.
 
-**Architecture:** New `app/data/capitol_trades.py` (pure `parse_capitol_trades` + `signal_hash` + thin live `fetch_capitol_trades`). New `Signal` model + migration. `app/services/signals_sync.py` upserts by unique hash. Pure `app/strategies/copy_trade.py`. `app/services/copy_runner.py` routes engine actions through `place_order`; "already copied" = signal hashes recorded as `ActivityLog(event="copied")` for that bot. Scheduler gains a copy branch + a scraper job. `bots` router generalized to both strategy types. Signals screen built to `design/fey-mockup.html`.
+**Architecture:** New `app/data/capitol_trades.py` (pure `parse_capitol_trades` + `signal_hash` + thin live `fetch_capitol_trades`). New `Signal` model + migration. `app/services/signals_sync.py` upserts by unique hash. Pure `app/strategies/copy_trade.py`. `app/services/copy_runner.py` routes engine actions through `place_order`; "already copied" = signal hashes recorded as `ActivityLog(event="copied")` for that bot. Scheduler gains a copy branch + a scraper job. `bots` router generalized to both strategy types. Signals screen built to `design/odyssey-mockup.html`.
 
 **Tech Stack:** Existing + `httpx` (already installed) for the live fetch.
 
@@ -45,7 +45,7 @@ class Signal(Base):
 
 - [ ] **Step 4: Run** the test — expect PASS.
 
-- [ ] **Step 5: Migration** — `cd /Users/parag.singh/Desktop/Fey/backend && .venv/bin/alembic revision --autogenerate -m "signals" && .venv/bin/alembic upgrade head`. Verify `/opt/homebrew/opt/postgresql@16/bin/psql "postgresql://fey:fey@localhost:5432/fey" -c "\dt"` shows `signals`.
+- [ ] **Step 5: Migration** — `cd /Users/parag.singh/Desktop/Codes/Personal_Play/Odyssey/backend && .venv/bin/alembic revision --autogenerate -m "signals" && .venv/bin/alembic upgrade head`. Verify `/opt/homebrew/opt/postgresql@16/bin/psql "postgresql://fey:fey@localhost:5432/fey" -c "\dt"` shows `signals`.
 
 - [ ] **Step 6: Commit** — SKIP.
 
@@ -759,7 +759,7 @@ def list_signals(politician: str | None = None, limit: int = 100, db: Session = 
 
 **Files:** Modify `frontend/src/lib/api.ts`, `frontend/src/components/CreateBotForm.tsx`, `frontend/src/app/page.tsx`; create `frontend/src/app/signals/page.tsx`, `frontend/src/components/SignalsTable.tsx`
 
-> **Design:** match `design/fey-mockup.html` — the **Signals screener** (filter chips, dense table: Politician / Ticker / Action BUY↗ green · SELL↘ red / Est. size / Tx date / Disclosed / Status, with `.st` pills) and the screener header. Reuse ported tokens. Dark theme.
+> **Design:** match `design/odyssey-mockup.html` — the **Signals screener** (filter chips, dense table: Politician / Ticker / Action BUY↗ green · SELL↘ red / Est. size / Tx date / Disclosed / Status, with `.st` pills) and the screener header. Reuse ported tokens. Dark theme.
 
 - [ ] **Step 1: Add to `frontend/src/lib/api.ts`**:
 ```typescript
@@ -783,7 +783,7 @@ export async function listSignals(politician?: string): Promise<Signal[]> {
 
 - [ ] **Step 5: Modify `frontend/src/app/page.tsx`** — add a nav link / button to `/signals` (the nav already lists "Signals" — make it route to `/signals`).
 
-- [ ] **Step 6: Build & verify** — `cd /Users/parag.singh/Desktop/Fey/frontend && npm run build` — MUST compile with no type errors.
+- [ ] **Step 6: Build & verify** — `cd /Users/parag.singh/Desktop/Codes/Personal_Play/Odyssey/frontend && npm run build` — MUST compile with no type errors.
 
 - [ ] **Step 7: Commit** — SKIP.
 

@@ -1,10 +1,10 @@
-# Fey Phase 2 — Trailing-Stop Bot Implementation Plan
+# Odyssey Phase 2 — Trailing-Stop Bot Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax. **No git in this project — skip all commit steps.** Run backend tests with `cd /Users/parag.singh/Desktop/Fey/backend && .venv/bin/pytest <args> -v`.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax. **No git in this project — skip all commit steps.** Run backend tests with `cd /Users/parag.singh/Desktop/Codes/Personal_Play/Odyssey/backend && .venv/bin/pytest <args> -v`.
 
 **Goal:** Add an automated trailing-stop strategy: a deterministic pure engine (raise-only stop floor + ladder buys), the `bots`/`positions` tables, a per-bot tick runner that routes engine actions through the existing risk chokepoint + order service, an always-on market-hours scheduler, a bot REST API, and a bot-detail UI. Also implements Alpaca market-data quotes (closing the Phase-1 gap so live orders can be priced).
 
-**Architecture:** Builds on the Phase-1 backend (`backend/app/...`). New pure module `app/strategies/trailing_stop.py` (no I/O). New persistence: `Bot` + `Position` models + Alembic migration. New `app/services/runner.py` orchestrates one bot tick (fetch state+quote → engine → per-action risk+submit via the existing `place_order` → persist position state + activity log). APScheduler runs active bots on their cadence during US market hours (Alpaca clock). New `app/routers/bots.py`. Frontend gains a bot-detail screen + create-bot form, built to `design/fey-mockup.html`.
+**Architecture:** Builds on the Phase-1 backend (`backend/app/...`). New pure module `app/strategies/trailing_stop.py` (no I/O). New persistence: `Bot` + `Position` models + Alembic migration. New `app/services/runner.py` orchestrates one bot tick (fetch state+quote → engine → per-action risk+submit via the existing `place_order` → persist position state + activity log). APScheduler runs active bots on their cadence during US market hours (Alpaca clock). New `app/routers/bots.py`. Frontend gains a bot-detail screen + create-bot form, built to `design/odyssey-mockup.html`.
 
 **Tech Stack:** Existing stack + `apscheduler` (new dep) + alpaca-py market-data (`StockHistoricalDataClient`) + Alpaca trading clock.
 
@@ -205,9 +205,9 @@ Add import `Clock` to the existing `from app.brokers.base import (...)` line, an
 
 - [ ] **Step 1: Add to `[project].dependencies`** in `backend/pyproject.toml` the line `"apscheduler>=3.10",` (after the `"alpaca-py>=0.33",` line).
 
-- [ ] **Step 2: Install** — run `cd /Users/parag.singh/Desktop/Fey/backend && .venv/bin/pip install "apscheduler>=3.10"`. Expect success.
+- [ ] **Step 2: Install** — run `cd /Users/parag.singh/Desktop/Codes/Personal_Play/Odyssey/backend && .venv/bin/pip install "apscheduler>=3.10"`. Expect success.
 
-- [ ] **Step 3: Verify** — `cd /Users/parag.singh/Desktop/Fey/backend && .venv/bin/python -c "import apscheduler; print('ok')"` → `ok`.
+- [ ] **Step 3: Verify** — `cd /Users/parag.singh/Desktop/Codes/Personal_Play/Odyssey/backend && .venv/bin/python -c "import apscheduler; print('ok')"` → `ok`.
 
 - [ ] **Step 4: Commit** — SKIP.
 
@@ -266,7 +266,7 @@ class Position(Base):
 
 - [ ] **Step 5: Generate + apply migration** — run:
 ```
-cd /Users/parag.singh/Desktop/Fey/backend && .venv/bin/alembic revision --autogenerate -m "bots and positions" && .venv/bin/alembic upgrade head
+cd /Users/parag.singh/Desktop/Codes/Personal_Play/Odyssey/backend && .venv/bin/alembic revision --autogenerate -m "bots and positions" && .venv/bin/alembic upgrade head
 ```
 Verify: `/opt/homebrew/opt/postgresql@16/bin/psql "postgresql://fey:fey@localhost:5432/fey" -c "\dt"` shows `bots` and `positions`.
 
@@ -794,13 +794,13 @@ from app.routers import health, accounts, orders, positions, bots
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     import os
-    if os.environ.get("FEY_DISABLE_SCHEDULER") != "1":
+    if os.environ.get("ODYSSEY_DISABLE_SCHEDULER") != "1":
         from app.services.scheduler import start_scheduler
         start_scheduler()
     yield
 
 
-app = FastAPI(title="Fey", lifespan=lifespan)
+app = FastAPI(title="Odyssey", lifespan=lifespan)
 app.add_middleware(
     CORSMiddleware, allow_origins=["http://localhost:3000"],
     allow_methods=["*"], allow_headers=["*"],
@@ -812,7 +812,7 @@ app.include_router(positions.router)
 app.include_router(bots.router)
 ```
 
-- [ ] **Step 6: Update test harness** — in `backend/tests/conftest.py`, the `client` fixture must also (a) set `FEY_DISABLE_SCHEDULER=1` so APScheduler doesn't start during tests, and (b) patch the bots router's broker seam to the FakeBroker (with a TSLA quote). Add `os.environ["FEY_DISABLE_SCHEDULER"] = "1"` inside the `_env` fixture. Inside the `client` fixture, after importing, add:
+- [ ] **Step 6: Update test harness** — in `backend/tests/conftest.py`, the `client` fixture must also (a) set `ODYSSEY_DISABLE_SCHEDULER=1` so APScheduler doesn't start during tests, and (b) patch the bots router's broker seam to the FakeBroker (with a TSLA quote). Add `os.environ["ODYSSEY_DISABLE_SCHEDULER"] = "1"` inside the `_env` fixture. Inside the `client` fixture, after importing, add:
 ```python
     from app.routers import bots as bots_router
     bots_router.get_broker_for_account = lambda account: fake
@@ -832,7 +832,7 @@ and ensure the FakeBroker is created with `quotes={"AAPL": 100.0, "TSLA": 250.0}
 - Create: `frontend/src/components/BotStatus.tsx`, `frontend/src/components/CreateBotForm.tsx`, `frontend/src/app/bots/[id]/page.tsx`
 - Modify: `frontend/src/app/page.tsx` (add an "Active bots" card linking to bot detail, + a "New bot" affordance)
 
-> **Design:** match `design/fey-mockup.html` — the Overview "Active bots" compact rows (`.botrow`) and the Position-detail right-panel **Trailing-stop bot status** card (status, stop floor, trail %, next ladder, action timeline). Use the existing ported tokens/components. Dark theme.
+> **Design:** match `design/odyssey-mockup.html` — the Overview "Active bots" compact rows (`.botrow`) and the Position-detail right-panel **Trailing-stop bot status** card (status, stop floor, trail %, next ladder, action timeline). Use the existing ported tokens/components. Dark theme.
 
 - [ ] **Step 1: Add to `frontend/src/lib/api.ts`** types + calls:
 
@@ -876,7 +876,7 @@ export async function setBotStatus(id: number, status: string): Promise<Bot> {
 
 - [ ] **Step 5: Modify `frontend/src/app/page.tsx`** — add an "Active bots" section (compact `.botrow` rows from `listBots()`, each linking to `/bots/{id}` and showing status + symbol + P&L if available) and a "New bot" button that reveals/links to `CreateBotForm`.
 
-- [ ] **Step 6: Build & verify** — `cd /Users/parag.singh/Desktop/Fey/frontend && npm run build` — MUST compile with no type errors. Fix any errors.
+- [ ] **Step 6: Build & verify** — `cd /Users/parag.singh/Desktop/Codes/Personal_Play/Odyssey/frontend && npm run build` — MUST compile with no type errors. Fix any errors.
 
 - [ ] **Step 7: Commit** — SKIP.
 
@@ -894,7 +894,7 @@ export async function setBotStatus(id: number, status: string): Promise<Bot> {
 - Risk guardrails reused unchanged (no duplication) ✓
 - Idempotency: orders carry `dedupe_key` (Phase-1 column) — engine actions are per-tick; the runner does not double-submit within a tick. Cross-tick dedupe for ladder rungs handled by `triggered_rungs`. (Full per-tick dedupe keys are a later hardening; noted, not silently skipped.)
 
-**Placeholder scan:** No TBD/TODO; every backend step has full code. Frontend Steps 2–5 describe components with explicit props, data sources, styles, and size budgets but not full JSX (the design lives in `design/fey-mockup.html`, which the implementer ports) — acceptable for the UI layer, consistent with Phase-1 Task 10.
+**Placeholder scan:** No TBD/TODO; every backend step has full code. Frontend Steps 2–5 describe components with explicit props, data sources, styles, and size budgets but not full JSX (the design lives in `design/odyssey-mockup.html`, which the implementer ports) — acceptable for the UI layer, consistent with Phase-1 Task 10.
 
 **Type consistency:** `evaluate(config, state, price) -> TrailingDecision` used identically in Task 4 (tests) and Task 5 (runner). `TrailingState` fields (qty/avg_entry_price/stop_floor/triggered_rungs) match the `Position` model columns (Task 3) and the runner's mapping (Task 5). `get_broker_for_account` is the injection seam in `bots.py` (Task 7) overridden in conftest (Task 7 Step 6) — same pattern as Phase-1 orders/positions. `build_bot_broker` is referenced by both `bots.py` and `scheduler.py` (Task 6) via module import. `AdjustStop`/`Clock` added in Task 1 are imported where used. Scheduler's `should_run_tick` signature matches its tests (Task 6) and its caller (Task 6 `tick_all_active_bots`).
 

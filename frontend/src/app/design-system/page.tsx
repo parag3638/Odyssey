@@ -113,8 +113,8 @@ export default function DesignSystemPage() {
         </Button>
       </div>
       <p className="sg-lead">
-        The dark fintech component library behind Odyssey — matching the Wealthsimple /
-        Fey references. Every component below is live and themable. See
+        The dark fintech component library behind Odyssey. Every component below is live and
+        themable. See
         <code> design/DESIGN_SYSTEM.md</code> for usage and the reference images.
       </p>
 

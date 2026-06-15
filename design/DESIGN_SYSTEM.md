@@ -1,17 +1,14 @@
-# Fey Design System
+# Odyssey Design System
 
-The dark fintech design language for Fey — a paper-trading dashboard styled after
-**Fey** (Thiago Costa's research terminal, acquired by Wealthsimple in 2025) and the
-**Wealthsimple** app. Both share one design lineage by the same designer, so "match the
-references" is a single, coherent target.
+The dark fintech design language for Odyssey — a paper-trading dashboard. Near-monochrome
+layered surfaces, calm whitespace, emerald gains / coral losses, and a coherent dark/light
+system.
 
 > **This file is the source of truth for UI work.** Before building or changing any
-> screen/component, read this doc, skim the reference gallery, and reuse the existing
+> screen/component, read this doc, skim the screen catalog, and reuse the existing
 > tokens (`frontend/src/app/styles/tokens.css`) and component library
 > (`frontend/src/components/ui/`). A live, browsable styleguide of every component is at
 > the **`/design-system`** route (`npm run dev` → http://localhost:3000/design-system).
-
-**Sources to study:** [fey.com](https://fey.com) · [wealthsimple.com](https://www.wealthsimple.com/en-ca) · designer [@tcosta](https://x.com/tcosta)
 
 ---
 
@@ -29,24 +26,25 @@ Achieved exemplars (screenshots of this codebase):
 
 ---
 
-## Reference gallery
+## Screen catalog
 
-Drop the original reference screenshots into `reference/images/` using the filenames below
-(see `reference/images/README.md`). Each entry lists **what to extract**.
+The screens that make up the app and the key elements each one needs. A live styleguide of
+every component is at the `/design-system` route; realized screenshots live in
+`reference/achieved/`.
 
-| # | File | Source | Extract |
-|---|------|--------|---------|
-| 1 | `01-ws-move-action-cards.png` | WS Move | Big action-card grid (`.actioncard`), FAQ list, dark elevated tiles |
-| 2 | `02-ws-household.png` | WS Household | Balance + line chart, account rows (`.acctrow`), **asset/household breakdown** stacked bar + legend (`AllocationBar`/`AssetBreakdown`) |
-| 3 | `03-ws-home.png` | WS Home | The Overview blueprint: balance hero, timeframe pills, right rail (quick actions, promo carousel, Holdings/Watchlist widget) |
-| 4 | `04-fey-earnings.png` | Fey Earnings | Flip-card date tiles, highlighted "today", logo clusters, "N events" (`EarningsCalendar`) |
-| 5 | `05-fey-stock-detail.png` | Fey | Stock detail: dim-cents price, line+**volume**+crosshair tooltip, **KPI strip**, News/KPIs/Earnings/About tabs (`StockDetail`) |
-| 6 | `06-ws-light-vs-dark.png` | WS | Both themes side by side; colored account **icon tiles** (`IconTile`) — proves light/dark parity |
-| 7 | `07-fey-column-customizer.png` | Fey | Column visibility + drag-reorder popover (`ColumnCustomizer`); donut allocation indicator |
-| 8 | `08-ws-holdings-table.png` | WS Portfolio | **The hallmark table**: logo, account pills, allocation donut, qty, price, signed return pills, value, all-time return, sortable headers (`HoldingsTable`/`DataTable`) |
-| 9 | `09-fey-stock-finder.png` | Fey | NL query bar, sector pills, dense sortable screener, active-column highlight (`ScreenerTable`) |
-| 10 | `10-fey-tsla-news.png` | Fey | News card: ticker chip + time, headline, embedded split perf-chart, Sell/Buy pill, account·date footer (`NewsCard`) |
-| 11 | `11-ws-holdings-detail.png` | WS | Stat cards row (`StatGrid`), big white→colored area chart with date axis, Account value/Performance toggle |
+| # | Screen | Key elements |
+|---|--------|--------------|
+| 1 | Move / action cards | Big action-card grid (`.actioncard`), FAQ list, dark elevated tiles |
+| 2 | Household | Balance + line chart, account rows (`.acctrow`), **asset/household breakdown** stacked bar + legend (`AllocationBar`/`AssetBreakdown`) |
+| 3 | Home / Overview | Balance hero, timeframe pills, right rail (quick actions, promo carousel, Holdings/Watchlist widget) |
+| 4 | Earnings | Flip-card date tiles, highlighted "today", logo clusters, "N events" (`EarningsCalendar`) |
+| 5 | Stock detail | Dim-cents price, line+**volume**+crosshair tooltip, **KPI strip**, News/KPIs/Earnings/About tabs (`StockDetail`) |
+| 6 | Light vs dark | Both themes side by side; colored account **icon tiles** (`IconTile`) — light/dark parity |
+| 7 | Column customizer | Column visibility + drag-reorder popover (`ColumnCustomizer`); donut allocation indicator |
+| 8 | Holdings table | **The hallmark table**: logo, account pills, allocation donut, qty, price, signed return pills, value, all-time return, sortable headers (`HoldingsTable`/`DataTable`) |
+| 9 | Stock finder | NL query bar, sector pills, dense sortable screener, active-column highlight (`ScreenerTable`) |
+| 10 | News card | Ticker chip + time, headline, embedded split perf-chart, Sell/Buy pill, account·date footer (`NewsCard`) |
+| 11 | Holdings detail | Stat cards row (`StatGrid`), big area chart with date axis, Account value/Performance toggle |
 
 ---
 
@@ -161,9 +159,9 @@ with a dot. Sector → `Tag muted`.
 ```
 design/
   DESIGN_SYSTEM.md            ← this file
-  fey-mockup.html             ← original static mockup (chart algorithms, patterns)
+  odyssey-mockup.html         ← static mockup (chart algorithms, patterns)
   reference/
-    images/                   ← drop the 11 original references here (see README)
+    images/                   ← target-screen reference slots (see README)
     achieved/                 ← screenshots of this codebase realizing the look
 frontend/src/
   app/

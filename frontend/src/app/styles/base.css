@@ -34,7 +34,7 @@ body {
     color var(--dur-3);
 }
 
-/* emerald top-glow — the signature Fey atmosphere */
+/* emerald top-glow — the signature Odyssey atmosphere */
 body::before {
   content: "";
   position: fixed;

@@ -1,4 +1,4 @@
-/* Fey UI component library — dark fintech, matching design/DESIGN_SYSTEM.md. */
+/* Odyssey UI component library — dark fintech, matching design/DESIGN_SYSTEM.md. */
 
 export {
   Card,

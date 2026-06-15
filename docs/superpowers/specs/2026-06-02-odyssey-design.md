@@ -1,4 +1,4 @@
-# Fey — Design Spec
+# Odyssey — Design Spec
 
 **Date:** 2026-06-02
 **Status:** Approved (design); pending implementation plan
@@ -10,13 +10,13 @@ Samin Yasar (`https://www.youtube.com/watch?v=lH5wrfNwL3k`). The video demonstra
 driving Claude + Alpaca + scheduled tasks to run trading strategies (trailing-stop,
 copy-trading of US politicians via Capitol Trades, and the options "wheel" strategy).
 
-Fey productizes that idea as a real, trustworthy, always-on app — replacing the
+Odyssey productizes that idea as a real, trustworthy, always-on app — replacing the
 "talk to an LLM live" approach with a **deterministic strategy engine**.
 
-A full transcript of the source video is retained at `/tmp/fey_transcript_timestamped.txt`
+A full transcript of the source video is retained at `/tmp/odyssey_transcript_timestamped.txt`
 (reference only; not part of the repo).
 
-## What Fey is
+## What Odyssey is
 
 A paper-trading-first web application that runs deterministic trading strategies on an
 always-on, market-hours scheduler.

@@ -7,13 +7,13 @@ from app.routers import health, accounts, orders, positions, bots, signals, acti
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     import os
-    if os.environ.get("FEY_DISABLE_SCHEDULER") != "1":
+    if os.environ.get("ODYSSEY_DISABLE_SCHEDULER") != "1":
         from app.services.scheduler import start_scheduler
         start_scheduler()
     yield
 
 
-app = FastAPI(title="Fey", lifespan=lifespan)
+app = FastAPI(title="Odyssey", lifespan=lifespan)
 app.add_middleware(
     CORSMiddleware,
     # Any localhost/127.0.0.1 port — Next dev may land on 3000, 3001, … so we
