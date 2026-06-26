@@ -18,7 +18,7 @@ Alpaca paper, or an in-memory fake for tests).
 
 ### Features
 - **Manual trading** — accounts (broker API keys Fernet-encrypted at rest), a risk-checked
-  order path, positions, activity log, a stock screener, watchlist, and a stock-detail view
+  order path, positions, activity log, a stock screener, and a stock-detail view
   (price/volume chart, KPIs, news, earnings, analyst ratings).
 - **Trailing-stop bot** — a pure trailing-stop engine driven by Alpaca quotes + market
   clock, ticked every 5 minutes during market hours by an in-process scheduler.
@@ -184,7 +184,6 @@ Base URL `http://localhost:8000` · OpenAPI docs at `/docs`.
 | Signals | `GET /signals` · `POST /signals/sync` |
 | Activity | `GET /activity` |
 | Stocks | `GET /stocks` · `/metrics` · `/industries` · `/movers` · `/{symbol}` (+ history/news/earnings/analysis/dividends/signals) |
-| Watchlist | `GET/POST /watchlist` · `DELETE /watchlist/{symbol}` |
 
 ---
 

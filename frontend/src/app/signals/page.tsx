@@ -126,10 +126,6 @@ export default function SignalsPage() {
             action={action === "all" ? undefined : action}
           />
         </div>
-
-        <div className="foot">
-          <b>Odyssey</b> · paper trading · Signals
-        </div>
       </div>
     </>
   );

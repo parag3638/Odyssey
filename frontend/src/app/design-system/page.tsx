@@ -318,17 +318,13 @@ export default function DesignSystemPage() {
           <Card>
             <EmptyState
               icon={<PositionsIcon />}
-              title="No watchlist yet"
-              desc="Symbols you follow will appear here."
-              action={<Button sm><PlusIcon /> Add symbol</Button>}
+              title="No positions yet"
+              desc="Your holdings appear here once you place a trade."
+              action={<Button sm><PlusIcon /> New order</Button>}
             />
           </Card>
         </div>
       </Section>
-
-      <div className="foot" style={{ marginTop: 48 }}>
-        <b>Odyssey</b> Design System · all sample data · matches design/DESIGN_SYSTEM.md
-      </div>
     </div>
   );
 }

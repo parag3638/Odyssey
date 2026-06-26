@@ -13,14 +13,12 @@ import {
   PositionsIcon,
   SearchIcon,
   SignalsIcon,
-  StarIcon,
   StocksIcon,
 } from "./icons";
 
 type NavKey =
   | "overview"
   | "stocks"
-  | "watchlist"
   | "positions"
   | "signals"
   | "activity";
@@ -28,7 +26,6 @@ type NavKey =
 const PRIMARY: { key: NavKey; label: string; icon: React.ReactNode; href: string }[] = [
   { key: "overview", label: "Home", icon: <OverviewIcon />, href: "/" },
   { key: "stocks", label: "Stocks", icon: <StocksIcon />, href: "/stocks" },
-  { key: "watchlist", label: "Watchlist", icon: <StarIcon />, href: "/watchlist" },
 ];
 
 const PORTFOLIO: { key: NavKey; label: string; icon: React.ReactNode; href: string }[] = [

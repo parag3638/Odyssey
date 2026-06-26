@@ -1,12 +1,10 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
-import type { StockRow } from "@/lib/api";
 import type { HoldingView } from "@/lib/types";
 import { money, pct, qtyFmt } from "@/lib/format";
 import { ExpandIcon } from "@/components/icons";
-import { Pill, SegmentedControl, TickerLogo } from "@/components/ui";
+import { Pill, TickerLogo } from "@/components/ui";
 
 interface Row {
   symbol: string;
@@ -16,59 +14,33 @@ interface Row {
   logo?: string;
 }
 
-export function HoldingsRail({
-  holdings,
-  watchlist,
-}: {
-  holdings: HoldingView[];
-  watchlist: StockRow[];
-}) {
-  const [view, setView] = useState<"holdings" | "watchlist">("holdings");
+export function HoldingsRail({ holdings }: { holdings: HoldingView[] }) {
   const router = useRouter();
 
-  const rows: Row[] =
-    view === "holdings"
-      ? holdings.map((h) => {
-          const price = h.price ?? h.avgCost;
-          return {
-            symbol: h.symbol,
-            sub: `${qtyFmt(h.qty)} shares`,
-            price,
-            changePct:
-              h.prevClose && h.prevClose > 0
-                ? ((price - h.prevClose) / h.prevClose) * 100
-                : null,
-          };
-        })
-      : watchlist.map((w) => ({
-          symbol: w.symbol,
-          sub: w.name || "",
-          price: w.price,
-          changePct: w.change_pct,
-          logo: w.logo_url || undefined,
-        }));
+  const rows: Row[] = holdings.map((h) => {
+    const price = h.price ?? h.avgCost;
+    return {
+      symbol: h.symbol,
+      sub: `${qtyFmt(h.qty)} shares`,
+      price,
+      changePct:
+        h.prevClose && h.prevClose > 0
+          ? ((price - h.prevClose) / h.prevClose) * 100
+          : null,
+    };
+  });
 
   return (
     <div className="widget">
       <div className="wh">
-        <SegmentedControl
-          options={[
-            { label: "Holdings", value: "holdings" },
-            { label: "Watchlist", value: "watchlist" },
-          ]}
-          value={view}
-          onChange={setView}
-        />
-        <a
-          onClick={() => router.push(view === "holdings" ? "/positions" : "/watchlist")}
-          aria-label="Expand"
-        >
+        <span className="wht">Holdings</span>
+        <a onClick={() => router.push("/positions")} aria-label="Expand">
           <ExpandIcon />
         </a>
       </div>
       {rows.length === 0 ? (
         <div className="mw-lbl" style={{ textTransform: "none", letterSpacing: 0 }}>
-          {view === "holdings" ? "No holdings yet." : "No stocks followed yet."}
+          No holdings yet.
         </div>
       ) : (
         rows.slice(0, 7).map((r) => (

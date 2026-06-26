@@ -99,13 +99,6 @@ class Ticker(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow, onupdate=_utcnow)
 
 
-class Watchlist(Base):
-    __tablename__ = "watchlist"
-    id: Mapped[int] = mapped_column(primary_key=True)
-    symbol: Mapped[str] = mapped_column(String(12), unique=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
-
-
 class MarketCache(Base):
     """Generic TTL cache for external market data (Finnhub/Alpaca) so pages are
     fast and we stay within rate limits."""

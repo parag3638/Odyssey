@@ -56,6 +56,7 @@ export default function StockPage() {
   const [range, setRange] = useState("1M");
   const [tab, setTab] = useState("news");
   const [news, setNews] = useState<NewsArticle[]>([]);
+  const [newsLoading, setNewsLoading] = useState(true);
   const [earnings, setEarnings] = useState<EarningsPoint[]>([]);
   const [analysis, setAnalysis] = useState<RecommendationPoint[]>([]);
   const [dividends, setDividends] = useState<DividendPoint[]>([]);
@@ -77,7 +78,17 @@ export default function StockPage() {
         if (!cancelled) setLoading(false);
       }
     })();
-    getStockNews(symbol).then((d) => !cancelled && setNews(d)).catch(() => {});
+    (async () => {
+      setNewsLoading(true);
+      try {
+        const d = await getStockNews(symbol);
+        if (!cancelled) setNews(d);
+      } catch {
+        /* ignore */
+      } finally {
+        if (!cancelled) setNewsLoading(false);
+      }
+    })();
     getStockEarnings(symbol).then((d) => !cancelled && setEarnings(d)).catch(() => {});
     getStockAnalysis(symbol).then((d) => !cancelled && setAnalysis(d)).catch(() => {});
     getStockDividends(symbol).then((d) => !cancelled && setDividends(d)).catch(() => {});
@@ -252,16 +263,12 @@ export default function StockPage() {
                   />
                 </div>
                 <div className="newssum">
-                  {tab === "news" && <NewsTab items={news} />}
+                  {tab === "news" && <NewsTab items={news} loading={newsLoading} />}
                   {tab === "earnings" && <EarningsTab items={earnings} />}
                   {tab === "dividends" && <DividendsTab items={dividends} />}
                   {tab === "analysis" && <AnalysisTab items={analysis} />}
                 </div>
               </div>
-            </div>
-
-            <div className="foot">
-              <b>Odyssey</b>
             </div>
           </>
         )}
@@ -346,18 +353,66 @@ function CongressionalActivity({
 }
 
 /* ---------------- tab panels ---------------- */
-function NewsTab({ items }: { items: NewsArticle[] }) {
+function timeAgo(iso: string | null): string {
+  if (!iso) return "";
+  const t = new Date(iso).getTime();
+  if (Number.isNaN(t)) return "";
+  const s = Math.max(0, (Date.now() - t) / 1000);
+  if (s < 3600) return `${Math.max(1, Math.floor(s / 60))}m ago`;
+  if (s < 86400) return `${Math.floor(s / 3600)}h ago`;
+  const d = Math.floor(s / 86400);
+  if (d < 30) return `${d}d ago`;
+  return new Date(t).toLocaleDateString();
+}
+
+function NewsThumb({ src }: { src: string }) {
+  const [failed, setFailed] = useState(false);
+  if (failed) return null;
+  // Many providers (e.g. Benzinga) ship a tiny `?width=20` preview — request a
+  // retina-crisp size for the 64px thumbnail when the param is present.
+  const hi = src.replace(/([?&]width=)\d+/, "$1160");
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img className="nr-thumb" src={hi} alt="" loading="lazy" onError={() => setFailed(true)} />
+  );
+}
+
+function NewsTab({ items, loading }: { items: NewsArticle[]; loading: boolean }) {
+  if (loading) {
+    return (
+      <div className="newslist" aria-busy="true">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <div key={i} className="newsrow is-skel">
+            <div className="nr-body">
+              <Skeleton w="94%" h={13} />
+              <Skeleton w="60%" h={13} style={{ marginTop: 8 }} />
+              <Skeleton w={104} h={10} style={{ marginTop: 12 }} />
+            </div>
+            {i % 2 === 0 && <Skeleton w={64} h={64} r={12} />}
+          </div>
+        ))}
+      </div>
+    );
+  }
   if (items.length === 0)
     return <div className="faint" style={{ fontSize: 13 }}>No recent news.</div>;
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-      {items.slice(0, 8).map((a, i) => (
-        <a key={i} href={a.url} target="_blank" rel="noopener noreferrer" style={{ display: "block" }}>
-          <div style={{ fontWeight: 600, fontSize: 13.5, lineHeight: 1.4 }}>{a.headline}</div>
-          <div className="faint" style={{ fontSize: 11.5, marginTop: 4 }}>
-            {a.source}
-            {a.datetime ? ` · ${new Date(a.datetime).toLocaleDateString()}` : ""}
+    <div className="newslist">
+      {items.slice(0, 20).map((a, i) => (
+        <a key={i} className="newsrow" href={a.url} target="_blank" rel="noopener noreferrer">
+          <div className="nr-body">
+            <div className="nr-title">{a.headline}</div>
+            <div className="nr-meta">
+              <span className="nr-src">{a.source}</span>
+              {a.datetime && (
+                <>
+                  <span className="nr-dot" />
+                  <span>{timeAgo(a.datetime)}</span>
+                </>
+              )}
+            </div>
           </div>
+          {a.image && <NewsThumb src={a.image} />}
         </a>
       ))}
     </div>

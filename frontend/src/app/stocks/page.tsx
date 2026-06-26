@@ -5,7 +5,6 @@ import { Nav } from "@/components/Nav";
 import { StockFinderTable } from "@/components/StockFinderTable";
 import { IndustryFilter, type FilterState } from "@/components/IndustryFilter";
 import { getStockIndustries, listStocks, type IndustryRow, type StockRow } from "@/lib/api";
-import { useWatchlist } from "@/lib/useWatchlist";
 import { SailIcon } from "@/components/icons";
 
 /* How many rows fit in the viewport below the table, so a page shows "all rows
@@ -44,7 +43,6 @@ export default function StocksPage() {
   const [rows, setRows] = useState<StockRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<FilterState>({ sector: "", industry: "", q: "" });
-  const { isStarred, toggle } = useWatchlist();
 
   const tableRef = useRef<HTMLDivElement | null>(null);
   const pageSize = useFillRows(tableRef);
@@ -109,15 +107,9 @@ export default function StocksPage() {
             key={`${filter.sector}|${filter.industry}`}
             rows={shown}
             loading={loading}
-            isStarred={isStarred}
-            onToggleStar={toggle}
             empty="No stocks match your filters."
             pageSize={pageSize}
           />
-        </div>
-
-        <div className="foot">
-          <b>Odyssey</b> · research · prices live · fundamentals via Finnhub
         </div>
       </div>
     </>

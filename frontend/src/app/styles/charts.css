@@ -23,6 +23,48 @@
   display: block;
 }
 
+/* placeholder shown in the chart area when there are no holdings to plot */
+.chart-empty {
+  height: 100%;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  padding: 0 24px;
+  border-radius: 12px;
+  background: radial-gradient(120% 90% at 50% 0%, var(--card-2) 0%, transparent 70%);
+  font-size: 13px;
+}
+
+/* hero stock selector — a quiet, borderless dropdown that blends into the hero
+   (overrides the default boxed .selectbtn). */
+.herosel .selectbtn {
+  height: auto;
+  border: 1px solid transparent;
+  background: transparent;
+  padding: 4px 7px;
+  font-size: 14px;
+  font-weight: 600;
+  gap: 5px;
+  border-radius: var(--r-1);
+}
+.herosel .selectbtn:hover,
+.herosel .selectbtn.open {
+  border-color: transparent;
+  background: var(--active);
+}
+.herosel .selectval {
+  color: var(--text-2);
+}
+.herosel .selectbtn:hover .selectval,
+.herosel .selectbtn.open .selectval {
+  color: var(--text);
+}
+.herosel .selectbtn svg {
+  width: 13px;
+  height: 13px;
+  color: var(--text-3);
+}
+
 /* paths */
 .cl-line {
   fill: none;

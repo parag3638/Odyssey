@@ -87,17 +87,28 @@ export function PortfolioHero({
       </div>
 
       <div className="chartbox" style={{ height: 340, marginTop: 22 }}>
-        <LineChart
-          data={series}
-          height={340}
-          tone={tone}
-          area
-          crosshair
-          hover="date"
-          draw
-          dates={labelsFor(range, series.length)}
-          ariaLabel="Portfolio value over time (illustrative)"
-        />
+        {loading ? (
+          // TradingView-style loading: a shimmer placeholder over the chart area,
+          // sized to the real chart so there's no layout shift when data lands.
+          <Skeleton h={340} r={16} />
+        ) : hasData ? (
+          <LineChart
+            data={series}
+            height={340}
+            tone={tone}
+            area
+            crosshair
+            hover="date"
+            draw
+            dates={labelsFor(range, series.length)}
+            ariaLabel="Portfolio value over time (illustrative)"
+          />
+        ) : (
+          // No holdings yet → don't fake a line; show a quiet placeholder.
+          <div className="chart-empty">
+            <span className="faint">Your portfolio chart appears once you hold positions.</span>
+          </div>
+        )}
       </div>
       <div className="herodiv" />
       <Ranges options={HERO_RANGES} value={range} onChange={onRange} hero />

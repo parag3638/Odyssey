@@ -4,13 +4,10 @@ import { useRouter } from "next/navigation";
 import type { StockRow } from "@/lib/api";
 import { compact, money, pct } from "@/lib/format";
 import { DataTable, type Column, Pill, Tag, TickerLogo } from "@/components/ui";
-import { StarIcon } from "@/components/icons";
 
 export function StocksTable({
   rows,
   loading,
-  isStarred,
-  onToggleStar,
   empty = "No stocks match.",
   initialSort = { key: "company", dir: "asc" as const },
   pageSize,
@@ -18,8 +15,6 @@ export function StocksTable({
 }: {
   rows: StockRow[];
   loading?: boolean;
-  isStarred?: (s: string) => boolean;
-  onToggleStar?: (s: string) => void;
   empty?: string;
   initialSort?: { key: string; dir: "asc" | "desc" };
   pageSize?: number;
@@ -29,27 +24,6 @@ export function StocksTable({
   const router = useRouter();
 
   const columns: Column<StockRow>[] = [];
-
-  if (onToggleStar) {
-    columns.push({
-      key: "star",
-      header: "",
-      align: "l",
-      render: (r) => (
-        <button
-          type="button"
-          className={`starbtn${isStarred?.(r.symbol) ? " on" : ""}`}
-          aria-label={isStarred?.(r.symbol) ? "Remove from watchlist" : "Add to watchlist"}
-          onClick={(e) => {
-            e.stopPropagation();
-            onToggleStar(r.symbol);
-          }}
-        >
-          <StarIcon />
-        </button>
-      ),
-    });
-  }
 
   columns.push({
     key: "company",

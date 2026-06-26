@@ -1,7 +1,7 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import health, accounts, orders, positions, bots, signals, activity, stocks, watchlist
+from app.routers import health, accounts, orders, positions, bots, signals, activity, stocks
 
 
 @asynccontextmanager
@@ -29,4 +29,3 @@ app.include_router(bots.router)
 app.include_router(signals.router)
 app.include_router(activity.router)
 app.include_router(stocks.router)
-app.include_router(watchlist.router)

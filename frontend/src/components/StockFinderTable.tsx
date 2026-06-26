@@ -11,7 +11,6 @@ import {
   Tag,
   TickerLogo,
 } from "@/components/ui";
-import { StarIcon } from "@/components/icons";
 
 type Sort = { key: string; dir: "asc" | "desc" };
 type MetricsMap = Record<string, StockMetrics>;
@@ -28,15 +27,11 @@ const NEG = -Infinity;
 export function StockFinderTable({
   rows,
   loading,
-  isStarred,
-  onToggleStar,
   empty = "No stocks match your filters.",
   pageSize = 20,
 }: {
   rows: StockRow[];
   loading?: boolean;
-  isStarred?: (s: string) => boolean;
-  onToggleStar?: (s: string) => void;
   empty?: string;
   pageSize?: number;
 }) {
@@ -130,27 +125,6 @@ export function StockFinderTable({
   };
 
   const columns: Column<StockRow>[] = [];
-
-  if (onToggleStar) {
-    columns.push({
-      key: "star",
-      header: "",
-      align: "l",
-      render: (r) => (
-        <button
-          type="button"
-          className={`starbtn${isStarred?.(r.symbol) ? " on" : ""}`}
-          aria-label={isStarred?.(r.symbol) ? "Remove from watchlist" : "Add to watchlist"}
-          onClick={(e) => {
-            e.stopPropagation();
-            onToggleStar(r.symbol);
-          }}
-        >
-          <StarIcon />
-        </button>
-      ),
-    });
-  }
 
   columns.push(
     {

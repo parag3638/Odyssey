@@ -48,7 +48,7 @@ const pick = (obj, keys) => {
 
 console.log(`Snapshotting ${BASE} …`);
 
-const [health, accounts, stocks, industries, movers, botsList, signals, activity, watchlist] =
+const [health, accounts, stocks, industries, movers, botsList, signals, activity] =
   await Promise.all([
     tryGet("/health", { status: "ok", mode: "paper" }),
     tryGet("/accounts", []),
@@ -58,7 +58,6 @@ const [health, accounts, stocks, industries, movers, botsList, signals, activity
     tryGet("/bots", []),
     tryGet("/signals", []),
     tryGet("/activity?limit=200", []),
-    tryGet("/watchlist", []),
   ]);
 
 const exact = {
@@ -67,7 +66,6 @@ const exact = {
   "/bots": botsList,
   "/stocks/industries": industries,
   "/stocks/movers": movers,
-  "/watchlist": watchlist,
 };
 
 // portfolio for each account

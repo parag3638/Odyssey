@@ -36,7 +36,7 @@ every component is at the `/design-system` route; realized screenshots live in
 |---|--------|--------------|
 | 1 | Move / action cards | Big action-card grid (`.actioncard`), FAQ list, dark elevated tiles |
 | 2 | Household | Balance + line chart, account rows (`.acctrow`), **asset/household breakdown** stacked bar + legend (`AllocationBar`/`AssetBreakdown`) |
-| 3 | Home / Overview | Balance hero, timeframe pills, right rail (quick actions, promo carousel, Holdings/Watchlist widget) |
+| 3 | Home / Overview | Balance hero, timeframe pills, right rail (quick actions, promo carousel, Holdings widget) |
 | 4 | Earnings | Flip-card date tiles, highlighted "today", logo clusters, "N events" (`EarningsCalendar`) |
 | 5 | Stock detail | Dim-cents price, line+**volume**+crosshair tooltip, **KPI strip**, News/KPIs/Earnings/About tabs (`StockDetail`) |
 | 6 | Light vs dark | Both themes side by side; colored account **icon tiles** (`IconTile`) — light/dark parity |

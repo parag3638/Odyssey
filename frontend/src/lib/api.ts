@@ -446,15 +446,3 @@ export function getStockSignals(symbol: string): Promise<Signal[]> {
 export function getMovers(): Promise<Movers> {
   return request<Movers>("/stocks/movers");
 }
-export function getWatchlist(): Promise<StockRow[]> {
-  return request<StockRow[]>("/watchlist");
-}
-export function addWatchlist(symbol: string): Promise<StockRow[]> {
-  return request<StockRow[]>("/watchlist", {
-    method: "POST",
-    body: JSON.stringify({ symbol }),
-  });
-}
-export function removeWatchlist(symbol: string): Promise<StockRow[]> {
-  return request<StockRow[]>(`/watchlist/${symbol}`, { method: "DELETE" });
-}

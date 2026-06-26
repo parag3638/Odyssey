@@ -7,8 +7,8 @@ import { LineChart } from "@/components/ui/LineChart";
 /* Backend-valid history buckets (see backend market_data._range). No "6M". */
 export const STOCK_HERO_RANGES = ["1D", "1W", "1M", "3M", "YTD", "1Y", "ALL"];
 
-/** Dashboard hero: a single-stock chart picked from a dropdown, mirroring the
- *  PortfolioHero layout (price block + chart + range pills) at hero scale. */
+/** Dashboard hero: a single-stock chart picked from a quiet inline dropdown,
+ *  with the price block + chart below. */
 export function StockHero({
   row,
   options,
@@ -51,7 +51,7 @@ export function StockHero({
           onChange={onSelect}
           ariaLabel="Select a stock"
           placeholder="Select a stock"
-          minWidth={240}
+          className="herosel"
           disabled={!options.length}
         />
         <span className="sp" />

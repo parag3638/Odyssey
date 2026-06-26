@@ -3,7 +3,7 @@
   python -m app.seed_tickers          # universe + Finnhub enrichment (if key set)
   python -m app.seed_tickers --no-enrich
 
-Creates the new tables (tickers/watchlist/market_cache) if missing, upserts the
+Creates the new tables (tickers/market_cache) if missing, upserts the
 curated universe (names/sectors/industries — works with no API key), and, when
 FINNHUB_API_KEY is set, enriches each row with logo + market cap (throttled to
 the free 60/min limit).

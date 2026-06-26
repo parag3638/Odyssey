@@ -17,7 +17,6 @@ import {
   ColumnsIcon,
   ExpandIcon,
   SparklesIcon,
-  StarIcon,
 } from "@/components/icons";
 
 const RANGES = ["1D", "1W", "1M", "3M", "YTD", "1Y", "All"];
@@ -59,7 +58,6 @@ export function StockDetail({
         <div>
           <div className="tk">
             {symbol}
-            <StarIcon />
           </div>
           <div className="nm3">{name}</div>
         </div>

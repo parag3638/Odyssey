@@ -170,11 +170,16 @@ export function DataTable<Row>({
               <tr key={`sk${r}`}>
                 {cols.map((c, i) => (
                   <td key={c.key} className={i === 0 ? "l" : ""}>
-                    <Skeleton
-                      w={i === 0 ? 140 : 60}
-                      h={12}
-                      style={{ marginLeft: i === 0 ? 0 : "auto" }}
-                    />
+                    {i === 0 ? (
+                      // match the real first cell (logo + label) so skeleton rows
+                      // are the same height as loaded rows — keeps columns balanced.
+                      <span style={{ display: "inline-flex", alignItems: "center", gap: 10, lineHeight: 0 }}>
+                        <Skeleton w={30} h={30} r={15} />
+                        <Skeleton w={104} h={12} />
+                      </span>
+                    ) : (
+                      <Skeleton w={60} h={12} style={{ marginLeft: "auto" }} />
+                    )}
                   </td>
                 ))}
               </tr>

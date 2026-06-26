@@ -251,10 +251,6 @@ export default function ActivityPage() {
             ))}
           </div>
         )}
-
-        <div className="foot">
-          <b>Odyssey</b> · paper trading · Activity
-        </div>
       </div>
     </>
   );

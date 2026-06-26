@@ -135,7 +135,3 @@ class IndustryOut(BaseModel):
     industry: str
     sector: str = ""
     count: int
-
-
-class WatchlistAdd(BaseModel):
-    symbol: str

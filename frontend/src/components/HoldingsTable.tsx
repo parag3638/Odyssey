@@ -12,7 +12,6 @@ import {
   EmptyState,
   IconButton,
   ReturnBadge,
-  SegmentedControl,
   Tag,
   TickerLogo,
 } from "@/components/ui";
@@ -68,7 +67,6 @@ export function HoldingsTable({
   error?: string | null;
   onRowClick?: (h: HoldingView) => void;
 }) {
-  const [view, setView] = useState<"holdings" | "watchlist">("holdings");
   const [cols, setCols] = useState<ColumnSpec[]>(DEFAULT_COLUMNS);
   const [showFilters, setShowFilters] = useState(false);
   const [excluded, setExcluded] = useState<Set<string>>(new Set());
@@ -167,15 +165,7 @@ export function HoldingsTable({
   return (
     <div>
       <div className="sec-h" style={{ marginBottom: 12 }}>
-        <SegmentedControl
-          options={[
-            { label: "Holdings", value: "holdings" },
-            { label: "Watchlist", value: "watchlist" },
-          ]}
-          value={view}
-          onChange={setView}
-          ariaLabel="Holdings or watchlist"
-        />
+        <h2>Holdings</h2>
         <div className="tbl-tools">
           {accounts.length > 1 && (
             <IconButton
@@ -221,15 +211,7 @@ export function HoldingsTable({
         </div>
       )}
 
-      {view === "watchlist" ? (
-        <div className="tcard">
-          <EmptyState
-            icon={<PositionsIcon />}
-            title="No watchlist yet"
-            desc="Symbols you follow will appear here."
-          />
-        </div>
-      ) : error ? (
+      {error ? (
         <div className="tcard">
           <EmptyState
             icon={<PositionsIcon />}

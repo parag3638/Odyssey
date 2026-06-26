@@ -8,21 +8,20 @@ import {
   type Signal,
   type StockRow,
 } from "@/lib/api";
-import { initials, money, signClass, signedMoney, compact } from "@/lib/format";
+import { initials } from "@/lib/format";
 import { usePortfolio } from "@/lib/usePortfolio";
 import { Nav } from "@/components/Nav";
 import { ActiveBots } from "@/components/ActiveBots";
 import { CreateBotForm } from "@/components/CreateBotForm";
 import { OrderForm } from "@/components/OrderForm";
-import { HoldingsRail } from "@/components/HoldingsRail";
 import { StocksTable } from "@/components/StocksTable";
 import { MoversWidget } from "@/components/MoversWidget";
 import { PoliticianTrades } from "@/components/PoliticianTrades";
-import { Card, Modal, PromoCarousel, Skeleton, Stat, StatGrid, KpiStrip } from "@/components/ui";
+import { Card, Modal, PromoCarousel, KpiStrip } from "@/components/ui";
 import { PlusIcon, SparklesIcon } from "@/components/icons";
 import { StockHero } from "@/components/StockHero";
 import { useStockHero } from "@/lib/useStockHero";
-import { buildKpis, statPE } from "@/lib/kpis";
+import { buildKpis } from "@/lib/kpis";
 
 const PROMO = [
   { title: "Automate a trailing stop", desc: "Let a bot follow a stock up and lock in gains with a moving floor." },
@@ -33,6 +32,7 @@ export default function HomePage() {
   const pf = usePortfolio();
   const [stocks, setStocks] = useState<StockRow[]>([]);
   const [signals, setSignals] = useState<Signal[]>([]);
+  const [signalsReady, setSignalsReady] = useState(false);
   const [greet, setGreet] = useState("Welcome Back");
   const [selected, setSelected] = useState("");
   const [range, setRange] = useState("1M");
@@ -41,7 +41,7 @@ export default function HomePage() {
 
   useEffect(() => {
     listStocks({ limit: 200 }).then(setStocks).catch(() => setStocks([]));
-    listSignals().then(setSignals).catch(() => setSignals([]));
+    listSignals().then(setSignals).catch(() => setSignals([])).finally(() => setSignalsReady(true));
   }, []);
 
   useEffect(() => {
@@ -71,21 +71,16 @@ export default function HomePage() {
     [ranked],
   );
 
-  // Initialize selected stock to the first in topCap
-  useEffect(() => {
-    if (!selected && topCap.length > 0) {
-      setSelected(topCap[0].symbol);
-    }
-  }, [topCap, selected]);
-
-  // Single-stock hero: selected row + dropdown options
-  const selectedRow = topCap.find((s) => s.symbol === selected) ?? (topCap[0] || null);
+  // Single-stock hero: ticker-rail options + the effective selection (default to
+  // the largest-cap stock until the user picks one — derived during render).
   const stockOptions = useMemo(
     () => topCap.map((s) => ({ label: `${s.symbol} · ${s.name}`, value: s.symbol })),
     [topCap],
   );
+  const selectedSymbol = selected || topCap[0]?.symbol || "";
+  const selectedRow = topCap.find((s) => s.symbol === selectedSymbol) ?? null;
   const isUp = (selectedRow?.change_pct ?? 0) >= 0;
-  const hero = useStockHero(selected, range, selectedRow?.price ?? null, isUp);
+  const hero = useStockHero(selectedSymbol, range, selectedRow?.price ?? null, isUp);
 
   const accountLabel = pf.account?.label ?? "there";
 
@@ -105,7 +100,7 @@ export default function HomePage() {
               <StockHero
                 row={selectedRow}
                 options={stockOptions}
-                selected={selected}
+                selected={selectedSymbol}
                 onSelect={setSelected}
                 range={range}
                 onRange={setRange}
@@ -116,51 +111,14 @@ export default function HomePage() {
               />
             </div>
 
-            <Card pad className="reveal" style={{ marginTop: 16, ["--i" as string]: 1 }}>
-              <StatGrid>
-                <Stat
-                  value={selectedRow ? money(selectedRow.price ?? 0) : <Skeleton w={96} h={20} />}
-                  label="Price"
-                  hl
-                />
-                <Stat
-                  value={
-                    selectedRow ? signedMoney(selectedRow.change ?? 0) : <Skeleton w={80} h={20} />
-                  }
-                  label="Day change"
-                  tone={selectedRow ? signClass(selectedRow.change ?? 0) : ""}
-                />
-                <Stat
-                  value={
-                    selectedRow
-                      ? selectedRow.market_cap != null
-                        ? compact(selectedRow.market_cap)
-                        : "—"
-                      : <Skeleton w={80} h={20} />
-                  }
-                  label="Market cap"
-                />
-                <Stat
-                  value={
-                    hero.loadingDetail ? (
-                      <Skeleton w={60} h={20} />
-                    ) : (
-                      statPE(hero.detail).value
-                    )
-                  }
-                  label={statPE(hero.detail).label}
-                />
-              </StatGrid>
-            </Card>
-
-            <div className="reveal" style={{ marginTop: 16, ["--i" as string]: 2 }}>
+            <div className="reveal" style={{ marginTop: 16, ["--i" as string]: 1 }}>
               {hero.detail ? (
                 <KpiStrip items={buildKpis(hero.detail)} />
+              ) : !selectedRow || hero.loadingDetail ? (
+                <KpiStrip loading />
               ) : (
                 <Card pad>
-                  <div className="faint" style={{ fontSize: 12.5 }}>
-                    {hero.loadingDetail ? "Loading fundamentals…" : "Fundamentals unavailable."}
-                  </div>
+                  <div className="faint" style={{ fontSize: 12.5 }}>Fundamentals unavailable.</div>
                 </Card>
               )}
             </div>
@@ -170,7 +128,7 @@ export default function HomePage() {
               <Link href="/stocks">Browse all →</Link>
             </div>
             <StocksTable
-              rows={topCap}
+              rows={topCap.slice(0, 5)}
               loading={stocks.length === 0}
               empty="Run the ticker seed to populate stocks."
               initialSort={{ key: "market_cap", dir: "desc" }}
@@ -191,15 +149,10 @@ export default function HomePage() {
               </button>
             </div>
             <ActiveBots compact />
-            <HoldingsRail holdings={pf.holdings} />
             <PromoCarousel slides={PROMO} />
-            <MoversWidget gainers={moverData.gainers} losers={moverData.losers} />
-            <PoliticianTrades signals={signals} />
+            <MoversWidget gainers={moverData.gainers} losers={moverData.losers} loading={stocks.length === 0} />
+            <PoliticianTrades signals={signals} loading={!signalsReady} />
           </aside>
-        </div>
-
-        <div className="foot">
-          <b>Odyssey</b>
         </div>
       </div>
 

@@ -177,6 +177,7 @@ export function Select<T extends string>({
   id,
   minWidth,
   disabled,
+  className,
 }: {
   value: T;
   options: (T | Option<T>)[];
@@ -186,6 +187,7 @@ export function Select<T extends string>({
   id?: string;
   minWidth?: number;
   disabled?: boolean;
+  className?: string;
 }) {
   const opts = asOptions(options);
   const [open, setOpen] = useState(false);
@@ -292,7 +294,7 @@ export function Select<T extends string>({
   };
 
   return (
-    <div className="selectwrap" ref={rootRef} style={minWidth ? { minWidth } : undefined}>
+    <div className={`selectwrap${className ? ` ${className}` : ""}`} ref={rootRef} style={minWidth ? { minWidth } : undefined}>
       <button
         ref={btnRef}
         type="button"

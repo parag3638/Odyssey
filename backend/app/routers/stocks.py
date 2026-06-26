@@ -24,6 +24,15 @@ def get_finnhub():
     return _get_finnhub()
 
 
+def _all_quotes(db: Session, md) -> dict:
+    """Whole-universe price snapshots, cached 5 min under one key so every stock
+    page (list + detail) reads prices from cache instead of hitting Alpaca per load."""
+    if not md:
+        return {}
+    syms = [s for (s,) in db.query(Ticker.symbol).all()]
+    return cached(db, "quotes_all", 300, lambda: md.snapshots(syms)) or {}
+
+
 def _row(t: Ticker, q: dict | None) -> StockRow:
     q = q or {}
     return StockRow(
@@ -60,7 +69,7 @@ def list_stocks(
         )
     tickers = query.all()
     md = get_market_data(db)
-    quotes = md.snapshots([t.symbol for t in tickers]) if md else {}
+    quotes = _all_quotes(db, md)
     rows = [_row(t, quotes.get(t.symbol)) for t in tickers]
     if sort == "change_pct":
         rows.sort(key=lambda r: r.change_pct if r.change_pct is not None else -1e18, reverse=True)
@@ -145,7 +154,9 @@ def industries(db: Session = Depends(get_db)):
 @router.get("/movers")
 def movers(db: Session = Depends(get_db)):
     md = get_market_data(db)
-    return md.movers() if md else {"gainers": [], "losers": []}
+    if not md:
+        return {"gainers": [], "losers": []}
+    return cached(db, "movers", 300, lambda: md.movers())
 
 
 @router.get("/{symbol}", response_model=StockDetailOut)
@@ -154,7 +165,7 @@ def stock_detail(symbol: str, db: Session = Depends(get_db)):
     t = db.get(Ticker, sym)
     md = get_market_data(db)
     fh = get_finnhub()
-    quote = md.snapshots([sym]).get(sym, {}) if md else {}
+    quote = _all_quotes(db, md).get(sym, {})
     metrics = cached(db, f"metrics:{sym}", 6 * 3600, lambda: fh.metrics(sym))
     market_cap = float(t.market_cap) if (t and t.market_cap is not None) else None
     if market_cap is None and isinstance(metrics, dict) and metrics.get("marketCapitalization"):
@@ -178,13 +189,20 @@ def stock_detail(symbol: str, db: Session = Depends(get_db)):
 @router.get("/{symbol}/history")
 def history(symbol: str, range: str = "1M", db: Session = Depends(get_db)):
     md = get_market_data(db)
-    return md.bars(symbol, range) if md else []
+    if not md:
+        return []
+    sym = symbol.upper()
+    rng = (range or "1M").upper()
+    return cached(db, f"bars:{sym}:{rng}", 3600, lambda: md.bars(sym, rng)) or []
 
 
 @router.get("/{symbol}/news")
 def news(symbol: str, db: Session = Depends(get_db)):
     md = get_market_data(db)
-    return md.news([symbol.upper()], 15) if md else []
+    if not md:
+        return []
+    sym = symbol.upper()
+    return cached(db, f"news:{sym}", 1800, lambda: md.news([sym], 15)) or []
 
 
 @router.get("/{symbol}/earnings")
@@ -204,7 +222,10 @@ def analysis(symbol: str, db: Session = Depends(get_db)):
 @router.get("/{symbol}/dividends")
 def dividends(symbol: str, db: Session = Depends(get_db)):
     md = get_market_data(db)
-    return md.dividends(symbol) if md else []
+    if not md:
+        return []
+    sym = symbol.upper()
+    return cached(db, f"div:{sym}", 43200, lambda: md.dividends(sym)) or []
 
 
 @router.get("/{symbol}/signals", response_model=list[SignalOut])

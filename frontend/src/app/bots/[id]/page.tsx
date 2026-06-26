@@ -144,10 +144,6 @@ export default function BotDetailPage() {
 
               <BotStatus bot={bot} />
             </div>
-
-            <div className="foot">
-              <b>Odyssey</b> · paper trading · performance chart is illustrative
-            </div>
           </>
         )}
       </div>

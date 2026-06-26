@@ -136,6 +136,52 @@ def test_stock_metrics_batch(client):
     assert data["JPM"]["earnings"] is None
 
 
+class CountingMD:
+    """FakeMD that records how many times each upstream method is hit."""
+    def __init__(self):
+        self.calls = {"snapshots": 0, "news": 0, "bars": 0, "movers": 0, "dividends": 0}
+
+    def snapshots(self, syms):
+        self.calls["snapshots"] += 1
+        return {s.upper(): {"price": 100.0, "prev_close": 95.0, "change": 5.0, "change_pct": 5.26} for s in syms}
+
+    def news(self, syms, limit=15):
+        self.calls["news"] += 1
+        return [{"headline": "x", "summary": "", "source": "wire", "url": "", "datetime": None, "image": "", "symbols": []}]
+
+    def bars(self, sym, rng="1M"):
+        self.calls["bars"] += 1
+        return [{"t": "2026-06-01T00:00:00+00:00", "price": 100.0, "volume": 1000.0}]
+
+    def movers(self):
+        self.calls["movers"] += 1
+        return {"gainers": [], "losers": []}
+
+    def dividends(self, sym):
+        self.calls["dividends"] += 1
+        return []
+
+
+def test_market_data_is_cached(client):
+    """Every Alpaca-backed endpoint (quotes, news, history, movers, dividends) hits
+    upstream once, then serves from market_cache on the second call."""
+    md = CountingMD()
+    stocks_router.get_market_data = lambda db: md
+    stocks_router.get_finnhub = lambda: FakeFinnhub()
+    _seed()
+
+    for path, key in [
+        ("/stocks", "snapshots"),
+        ("/stocks/AAPL/news", "news"),
+        ("/stocks/AAPL/history?range=1M", "bars"),
+        ("/stocks/movers", "movers"),
+        ("/stocks/AAPL/dividends", "dividends"),
+    ]:
+        client.get(path)
+        client.get(path)
+        assert md.calls[key] == 1, f"{path} hit upstream {md.calls[key]}× (expected 1 — caching broken)"
+
+
 def test_stock_metrics_no_key_degrades(client):
     """With a Finnhub client that returns None, every field is null, no error."""
     class _Empty:

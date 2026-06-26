@@ -58,10 +58,6 @@ export default function PositionsPage() {
             error={pf.error}
           />
         </div>
-
-        <div className="foot">
-          <b>Odyssey</b> · paper trading · Positions
-        </div>
       </div>
     </>
   );

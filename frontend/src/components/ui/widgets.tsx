@@ -5,7 +5,7 @@ import type {
   AllocationSlice,
   KpiItem,
 } from "@/lib/types";
-import { Card, IconTile } from "./primitives";
+import { Card, IconTile, Skeleton } from "./primitives";
 import {
   BankIcon,
   BriefcaseIcon,
@@ -16,7 +16,19 @@ import {
 } from "@/components/icons";
 
 /* ---------------- KPI strip (ref #5) ---------------- */
-export function KpiStrip({ items }: { items: KpiItem[] }) {
+export function KpiStrip({ items = [], loading }: { items?: KpiItem[]; loading?: boolean }) {
+  if (loading) {
+    return (
+      <div className="kpis">
+        {Array.from({ length: 8 }).map((_, i) => (
+          <div className="kpi" key={i}>
+            <div className="k"><Skeleton w={32} h={9} r={3} style={{ margin: "0 auto" }} /></div>
+            <div className="v"><Skeleton w={46} h={14} r={4} style={{ margin: "0 auto" }} /></div>
+          </div>
+        ))}
+      </div>
+    );
+  }
   return (
     <div className="kpis">
       {items.map((it) => (
