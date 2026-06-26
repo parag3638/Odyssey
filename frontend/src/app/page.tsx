@@ -8,13 +8,9 @@ import {
   type Signal,
   type StockRow,
 } from "@/lib/api";
-import { initials, logoColor, money, signClass, signedMoney } from "@/lib/format";
-import { makeSeries } from "@/lib/sample";
+import { initials, money, signClass, signedMoney, compact } from "@/lib/format";
 import { usePortfolio } from "@/lib/usePortfolio";
-import { useWatchlist } from "@/lib/useWatchlist";
-import type { AllocationSlice } from "@/lib/types";
 import { Nav } from "@/components/Nav";
-import { PortfolioHero, HERO_RANGES } from "@/components/PortfolioHero";
 import { ActiveBots } from "@/components/ActiveBots";
 import { CreateBotForm } from "@/components/CreateBotForm";
 import { OrderForm } from "@/components/OrderForm";
@@ -22,8 +18,11 @@ import { HoldingsRail } from "@/components/HoldingsRail";
 import { StocksTable } from "@/components/StocksTable";
 import { MoversWidget } from "@/components/MoversWidget";
 import { PoliticianTrades } from "@/components/PoliticianTrades";
-import { AssetBreakdown, Card, Modal, PromoCarousel, Skeleton, Stat, StatGrid } from "@/components/ui";
+import { Card, Modal, PromoCarousel, Skeleton, Stat, StatGrid, KpiStrip } from "@/components/ui";
 import { PlusIcon, SparklesIcon } from "@/components/icons";
+import { StockHero } from "@/components/StockHero";
+import { useStockHero } from "@/lib/useStockHero";
+import { buildKpis, statPE } from "@/lib/kpis";
 
 const PROMO = [
   { title: "Automate a trailing stop", desc: "Let a bot follow a stock up and lock in gains with a moving floor." },
@@ -32,12 +31,11 @@ const PROMO = [
 
 export default function HomePage() {
   const pf = usePortfolio();
-  const wl = useWatchlist();
   const [stocks, setStocks] = useState<StockRow[]>([]);
   const [signals, setSignals] = useState<Signal[]>([]);
   const [greet, setGreet] = useState("Welcome Back");
-  const [range, setRange] = useState("1D");
-  const [masked, setMasked] = useState(false);
+  const [selected, setSelected] = useState("");
+  const [range, setRange] = useState("1M");
   const [showOrder, setShowOrder] = useState(false);
   const [showBot, setShowBot] = useState(false);
 
@@ -73,26 +71,21 @@ export default function HomePage() {
     [ranked],
   );
 
-  const breakdown: AllocationSlice[] = useMemo(() => {
-    const hs = pf.holdings
-      .map((h) => ({ label: h.symbol, value: h.qty * (h.price ?? h.avgCost), color: logoColor(h.symbol) }))
-      .sort((a, b) => b.value - a.value);
-    const slices = hs.slice(0, 6);
-    const rest = hs.slice(6);
-    if (rest.length) slices.push({ label: "Other", value: rest.reduce((s, x) => s + x.value, 0), color: "#3a3a42" });
-    if (pf.cash != null && pf.cash > 0) slices.push({ label: "Cash", value: pf.cash, color: "#6a6a72" });
-    return slices;
-  }, [pf.holdings, pf.cash]);
+  // Initialize selected stock to the first in topCap
+  useEffect(() => {
+    if (!selected && topCap.length > 0) {
+      setSelected(topCap[0].symbol);
+    }
+  }, [topCap, selected]);
 
-  const seed = useMemo(() => {
-    let h = 7;
-    for (const p of pf.positions) for (const c of p.symbol) h = (h * 31 + c.charCodeAt(0)) >>> 0;
-    return h % 97;
-  }, [pf.positions]);
-  const series = useMemo(
-    () => makeSeries(150, 120, pf.todayPct >= 0 ? 10 : -10, seed + HERO_RANGES.indexOf(range) + 1),
-    [seed, range, pf.todayPct],
+  // Single-stock hero: selected row + dropdown options
+  const selectedRow = topCap.find((s) => s.symbol === selected) ?? (topCap[0] || null);
+  const stockOptions = useMemo(
+    () => topCap.map((s) => ({ label: `${s.symbol} · ${s.name}`, value: s.symbol })),
+    [topCap],
   );
+  const isUp = (selectedRow?.change_pct ?? 0) >= 0;
+  const hero = useStockHero(selected, range, selectedRow?.price ?? null, isUp);
 
   const accountLabel = pf.account?.label ?? "there";
 
@@ -106,55 +99,67 @@ export default function HomePage() {
         </div>
 
         <div className="ov-grid">
-          {/* main: chart, portfolio widgets, then the narrowed stocks table */}
+          {/* main: stock chart (from dropdown), reactive stats, then the narrowed stocks table */}
           <div>
             <div className="reveal" style={{ ["--i" as string]: 0 }}>
-              <PortfolioHero
-                balance={pf.balance}
-                masked={masked}
-                onToggleMask={() => setMasked((m) => !m)}
-                todayAmount={pf.todayAmount}
-                todayPct={pf.todayPct}
+              <StockHero
+                row={selectedRow}
+                options={stockOptions}
+                selected={selected}
+                onSelect={setSelected}
                 range={range}
                 onRange={setRange}
-                series={series}
-                hasData={pf.hasData}
-                loading={pf.loading}
+                series={hero.series}
+                dates={hero.dates}
+                realChart={hero.realChart}
+                loadingChart={hero.loadingChart}
               />
             </div>
 
             <Card pad className="reveal" style={{ marginTop: 16, ["--i" as string]: 1 }}>
               <StatGrid>
                 <Stat
-                  value={pf.loading ? <Skeleton w={96} h={20} /> : pf.hasData ? money(pf.balance) : "—"}
-                  label="Portfolio value"
+                  value={selectedRow ? money(selectedRow.price ?? 0) : <Skeleton w={96} h={20} />}
+                  label="Price"
                   hl
                 />
                 <Stat
-                  value={pf.loading ? <Skeleton w={80} h={20} /> : signedMoney(pf.todayAmount)}
-                  label="Today's return"
-                  tone={pf.loading ? "" : signClass(pf.todayAmount)}
+                  value={
+                    selectedRow ? signedMoney(selectedRow.change ?? 0) : <Skeleton w={80} h={20} />
+                  }
+                  label="Day change"
+                  tone={selectedRow ? signClass(selectedRow.change ?? 0) : ""}
                 />
                 <Stat
-                  value={pf.loading ? <Skeleton w={80} h={20} /> : signedMoney(pf.allTime.amount)}
-                  label="All-time return"
-                  tone={pf.loading ? "" : signClass(pf.allTime.amount)}
+                  value={
+                    selectedRow
+                      ? selectedRow.market_cap != null
+                        ? compact(selectedRow.market_cap)
+                        : "—"
+                      : <Skeleton w={80} h={20} />
+                  }
+                  label="Market cap"
                 />
                 <Stat
-                  value={pf.loading ? <Skeleton w={96} h={20} /> : pf.cash != null ? money(pf.cash) : "—"}
-                  label="Cash available"
+                  value={
+                    hero.loadingDetail ? (
+                      <Skeleton w={60} h={20} />
+                    ) : (
+                      statPE(hero.detail).value
+                    )
+                  }
+                  label={statPE(hero.detail).label}
                 />
               </StatGrid>
             </Card>
 
             <div className="reveal" style={{ marginTop: 16, ["--i" as string]: 2 }}>
-              {breakdown.length > 0 ? (
-                <AssetBreakdown title="Asset breakdown" slices={breakdown} />
+              {hero.detail ? (
+                <KpiStrip items={buildKpis(hero.detail)} />
               ) : (
                 <Card pad>
-                  <div className="bk-title" style={{ marginBottom: 0 }}>Asset breakdown</div>
-                  <div className="faint" style={{ fontSize: 12.5, marginTop: 8 }}>
-                    Your allocation appears once you hold positions.
+                  <div className="faint" style={{ fontSize: 12.5 }}>
+                    {hero.loadingDetail ? "Loading fundamentals…" : "Fundamentals unavailable."}
                   </div>
                 </Card>
               )}
@@ -167,8 +172,6 @@ export default function HomePage() {
             <StocksTable
               rows={topCap}
               loading={stocks.length === 0}
-              isStarred={wl.isStarred}
-              onToggleStar={wl.toggle}
               empty="Run the ticker seed to populate stocks."
               initialSort={{ key: "market_cap", dir: "desc" }}
               minimal
@@ -188,7 +191,7 @@ export default function HomePage() {
               </button>
             </div>
             <ActiveBots compact />
-            <HoldingsRail holdings={pf.holdings} watchlist={wl.rows} />
+            <HoldingsRail holdings={pf.holdings} />
             <PromoCarousel slides={PROMO} />
             <MoversWidget gainers={moverData.gainers} losers={moverData.losers} />
             <PoliticianTrades signals={signals} />
@@ -196,7 +199,7 @@ export default function HomePage() {
         </div>
 
         <div className="foot">
-          <b>Odyssey</b> · research terminal · paper trading · prices live · fundamentals via Finnhub
+          <b>Odyssey</b>
         </div>
       </div>
 

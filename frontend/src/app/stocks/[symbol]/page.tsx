@@ -21,12 +21,10 @@ import {
   ChevronLeftIcon,
   SignalsIcon,
   SparklesIcon,
-  StarIcon,
 } from "@/components/icons";
-import { compact, initials, money, pct, splitMoney } from "@/lib/format";
+import { initials, pct, splitMoney } from "@/lib/format";
+import { buildKpis } from "@/lib/kpis";
 import { makeSeries } from "@/lib/sample";
-import { useWatchlist } from "@/lib/useWatchlist";
-import type { KpiItem } from "@/lib/types";
 import {
   createBot,
   getStock,
@@ -48,31 +46,10 @@ import {
 
 const RANGES = ["1D", "1W", "1M", "3M", "YTD", "1Y", "ALL"];
 
-function buildKpis(d: StockDetailData): KpiItem[] {
-  const f = d.fundamentals || {};
-  const n = (k: string): number | null =>
-    typeof f[k] === "number" ? (f[k] as number) : null;
-  const pe = n("peTTM") ?? n("peBasicExclExtraTTM");
-  const eps = n("epsTTM") ?? n("epsBasicExclExtraItemsTTM");
-  const dy = n("dividendYieldIndicatedAnnual") ?? n("currentDividendYieldTTM");
-  const mc = d.market_cap ?? (n("marketCapitalization") ? n("marketCapitalization")! * 1e6 : null);
-  return [
-    { k: "Mkt cap", v: mc != null ? compact(mc) : "—" },
-    { k: "P/E", v: pe != null ? pe.toFixed(1) : "—" },
-    { k: "EPS", v: eps != null ? `$${eps.toFixed(2)}` : "—" },
-    { k: "Beta", v: n("beta") != null ? n("beta")!.toFixed(2) : "—" },
-    { k: "Div yield", v: dy != null ? `${dy.toFixed(2)}%` : "—" },
-    { k: "52W high", v: n("52WeekHigh") != null ? money(n("52WeekHigh")!) : "—" },
-    { k: "52W low", v: n("52WeekLow") != null ? money(n("52WeekLow")!) : "—" },
-    { k: "Gross margin", v: n("grossMarginTTM") != null ? `${n("grossMarginTTM")!.toFixed(1)}%` : "—" },
-  ];
-}
-
 export default function StockPage() {
   const params = useParams<{ symbol: string }>();
   const symbol = (params.symbol || "").toUpperCase();
   const router = useRouter();
-  const { isStarred, toggle } = useWatchlist();
 
   const [stock, setStock] = useState<StockDetailData | null>(null);
   const [history, setHistory] = useState<HistoryPoint[]>([]);
@@ -192,14 +169,6 @@ export default function StockPage() {
               <div>
                 <div className="tk">
                   {symbol}
-                  <button
-                    type="button"
-                    className={`starbtn${isStarred(symbol) ? " on" : ""}`}
-                    aria-label="Toggle watchlist"
-                    onClick={() => toggle(symbol)}
-                  >
-                    <StarIcon />
-                  </button>
                 </div>
                 <div className="nm3">
                   {stock?.name || symbol}
@@ -292,7 +261,7 @@ export default function StockPage() {
             </div>
 
             <div className="foot">
-              <b>Odyssey</b> · research · prices &amp; history live · fundamentals/earnings via Finnhub
+              <b>Odyssey</b>
             </div>
           </>
         )}
