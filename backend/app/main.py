@@ -19,6 +19,11 @@ app.add_middleware(
     # Any localhost/127.0.0.1 port — Next dev may land on 3000, 3001, … so we
     # can't hardcode a single port or the whole app shows "Failed to fetch".
     allow_origin_regex=r"https?://(localhost|127\.0\.0\.1)(:\d+)?",
+    # Deployed frontends: custom domain + Vercel production alias.
+    allow_origins=[
+        "https://odyssey.paragsingh.in",
+        "https://odyssey-two-bay.vercel.app",
+    ],
     allow_methods=["*"], allow_headers=["*"],
 )
 app.include_router(health.router)
