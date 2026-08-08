@@ -12,6 +12,9 @@ import {
   TickerLogo,
 } from "@/components/ui";
 import { AnalysisTab, DividendsTab, EarningsTab, NewsTab } from "@/components/StockResearchPanels";
+import { AiSummaryCard } from "@/components/AiSummaryCard";
+import { BullBearPanel } from "@/components/BullBearPanel";
+import { CongressContext } from "@/components/CongressContext";
 import { LineChart } from "@/components/ui/LineChart";
 import {
   ArrowDownRightIcon,
@@ -232,15 +235,19 @@ export function StockDetailView({ symbol }: { symbol: string }) {
             {stock && <KpiStrip items={buildKpis(stock)} />}
           </div>
 
+          <BullBearPanel symbol={symbol} />
+
           <CongressionalActivity
             signals={signals}
             busy={busy}
             accountId={accountId}
             onCopy={copyPolitician}
+            symbol={symbol}
           />
         </div>
 
         <div>
+          <AiSummaryCard symbol={symbol} />
           <div className="rtabs">
             <Tabs
               options={[
@@ -272,11 +279,13 @@ function CongressionalActivity({
   busy,
   accountId,
   onCopy,
+  symbol,
 }: {
   signals: Signal[];
   busy: boolean;
   accountId: number | null;
   onCopy: (politician: string) => void;
+  symbol: string;
 }) {
   return (
     <div style={{ marginTop: 26 }}>
@@ -285,6 +294,7 @@ function CongressionalActivity({
           Congressional activity <span className="cnt">· {signals.length}</span>
         </h2>
       </div>
+      {signals.length > 0 && <CongressContext symbol={symbol} />}
       <div className="tcard">
         {signals.length === 0 ? (
           <EmptyState

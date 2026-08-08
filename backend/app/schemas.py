@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class AccountCreate(BaseModel):
@@ -135,3 +135,86 @@ class IndustryOut(BaseModel):
     industry: str
     sector: str = ""
     count: int
+
+
+class Citation(BaseModel):
+    """A source an AI summary is grounded in — rendered as a link chip."""
+    id: str
+    label: str
+    url: str
+    kind: str = "news"
+
+
+class AiResponse(BaseModel):
+    """Envelope for every non-chat AI feature. `available=False` means the LLM is
+    unconfigured or produced nothing, and the UI hides the AI affordance."""
+    available: bool = True
+    text: str | None = None
+    citations: list[Citation] = []
+    disclaimer: str = "Information only — not personalized investment advice."
+    model: str | None = None
+
+
+class BullBearOut(BaseModel):
+    """Cross-source bull-vs-bear synthesis for one stock."""
+    available: bool = True
+    bull: list[str] = []
+    bear: list[str] = []
+    crux: str | None = None
+    citations: list[Citation] = []
+    disclaimer: str = "Information only — not personalized investment advice."
+    model: str | None = None
+
+
+class ConcentrationOut(BaseModel):
+    """One named concentration/overlap the portfolio observer surfaced."""
+    label: str
+    weight_pct: float
+
+
+class PortfolioHealthOut(BaseModel):
+    available: bool = True
+    text: str | None = None
+    concentrations: list[ConcentrationOut] = []
+    disclaimer: str = "Information only — not personalized investment advice."
+    model: str | None = None
+
+
+class RiskExplainIn(BaseModel):
+    reason: str
+    symbol: str = ""
+    qty: float = 0
+    side: str = "buy"
+
+
+class ScreenerFilter(BaseModel):
+    field: str
+    op: str  # < <= > >= = contains
+    value: str
+
+
+class ScreenerParseOut(BaseModel):
+    available: bool = True
+    filters: list[ScreenerFilter] = []
+    sort_field: str | None = None
+    sort_dir: str = "desc"
+    note: str | None = None
+    model: str | None = None
+
+
+class ScreenerParseIn(BaseModel):
+    query: str
+
+
+class ChatMessage(BaseModel):
+    role: str  # "user" | "assistant"
+    content: str
+
+
+class ChatContext(BaseModel):
+    symbol: str | None = None  # the stock the user is viewing, if any
+
+
+class ChatRequest(BaseModel):
+    messages: list[ChatMessage] = []
+    context: ChatContext = Field(default_factory=ChatContext)

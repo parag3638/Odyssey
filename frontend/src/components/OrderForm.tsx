@@ -3,10 +3,11 @@
 import { useState } from "react";
 import { placeOrder, type OrderSide } from "@/lib/api";
 import { Button, Field, Input } from "@/components/ui";
+import { RiskExplainer } from "@/components/RiskExplainer";
 
 type Result =
   | { kind: "ok"; text: string }
-  | { kind: "err"; text: string }
+  | { kind: "err"; text: string; risk?: { reason: string; symbol: string; qty: number; side: OrderSide } }
   | null;
 
 export function OrderForm({
@@ -42,9 +43,15 @@ export function OrderForm({
       });
       onPlaced();
     } catch (e) {
+      const text = e instanceof Error ? e.message : "Order failed.";
+      // A deterministic risk rejection (HTTP 422) — offer the read-only explainer.
+      const isRisk = text.toLowerCase().includes("risk rejection");
       setResult({
         kind: "err",
-        text: e instanceof Error ? e.message : "Order failed.",
+        text,
+        ...(isRisk
+          ? { risk: { reason: text, symbol: trimmed, qty: qtyNum, side } }
+          : {}),
       });
     } finally {
       setPending(false);
@@ -98,6 +105,14 @@ export function OrderForm({
           role="status"
         >
           {result.text}
+          {result.kind === "err" && result.risk && (
+            <RiskExplainer
+              reason={result.risk.reason}
+              symbol={result.risk.symbol}
+              qty={result.risk.qty}
+              side={result.risk.side}
+            />
+          )}
         </div>
       )}
     </div>

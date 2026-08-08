@@ -207,6 +207,240 @@ export function getQuotes(
   return request<QuoteOut[]>(`/positions/${accountId}/quotes${q}`);
 }
 
+/* ── AI advisory layer ──────────────────────────────────────────────────────
+   Grounded, source-cited summaries/chat. Every call is best-effort: it resolves
+   to `available:false` (never throws) when the backend is offline or the LLM key
+   is unset, so callers simply hide the AI affordance. */
+
+export interface Citation {
+  id: string;
+  label: string;
+  url: string;
+  kind: string;
+}
+
+export interface AiResponse {
+  available: boolean;
+  text: string | null;
+  citations: Citation[];
+  disclaimer: string;
+  model: string | null;
+}
+
+const AI_UNAVAILABLE: AiResponse = {
+  available: false,
+  text: null,
+  citations: [],
+  disclaimer: "",
+  model: null,
+};
+
+/** Plain-English, source-cited summary of a stock's recent news + analyst views. */
+export async function getAiSummary(symbol: string): Promise<AiResponse> {
+  if (await isDemoMode()) return AI_UNAVAILABLE;
+  try {
+    return await request<AiResponse>(`/ai/stocks/${symbol}/summary`);
+  } catch {
+    return AI_UNAVAILABLE;
+  }
+}
+
+export interface BullBearOut {
+  available: boolean;
+  bull: string[];
+  bear: string[];
+  crux: string | null;
+  citations: Citation[];
+  disclaimer: string;
+  model: string | null;
+}
+
+const BULLBEAR_UNAVAILABLE: BullBearOut = {
+  available: false,
+  bull: [],
+  bear: [],
+  crux: null,
+  citations: [],
+  disclaimer: "",
+  model: null,
+};
+
+/** Bull-vs-bear synthesis for a stock (news vs ratings vs fundamentals). */
+export async function getBullBear(symbol: string): Promise<BullBearOut> {
+  if (await isDemoMode()) return BULLBEAR_UNAVAILABLE;
+  try {
+    return await request<BullBearOut>(`/ai/stocks/${symbol}/bull-bear`);
+  } catch {
+    return BULLBEAR_UNAVAILABLE;
+  }
+}
+
+/** Descriptive AI read of a stock's congressional trades (cluster + prose). */
+export async function getCongressContext(symbol: string): Promise<AiResponse> {
+  if (await isDemoMode()) return AI_UNAVAILABLE;
+  try {
+    return await request<AiResponse>(`/ai/signals/${symbol}/context`);
+  } catch {
+    return AI_UNAVAILABLE;
+  }
+}
+
+export interface Concentration {
+  label: string;
+  weight_pct: number;
+}
+
+export interface PortfolioHealthOut {
+  available: boolean;
+  text: string | null;
+  concentrations: Concentration[];
+  disclaimer: string;
+  model: string | null;
+}
+
+/** Concentration/overlap observer over the connected account's holdings. */
+export async function getPortfolioHealth(): Promise<PortfolioHealthOut> {
+  const off: PortfolioHealthOut = {
+    available: false,
+    text: null,
+    concentrations: [],
+    disclaimer: "",
+    model: null,
+  };
+  if (await isDemoMode()) return off;
+  try {
+    return await request<PortfolioHealthOut>("/ai/portfolio/health");
+  } catch {
+    return off;
+  }
+}
+
+/** Plain-English explanation of a risk rejection the engine already produced. */
+export async function explainRisk(input: {
+  reason: string;
+  symbol?: string;
+  qty?: number;
+  side?: string;
+}): Promise<AiResponse> {
+  if (await isDemoMode()) return AI_UNAVAILABLE;
+  try {
+    return await request<AiResponse>("/ai/risk/explain", {
+      method: "POST",
+      body: JSON.stringify({ side: "buy", symbol: "", qty: 0, ...input }),
+    });
+  } catch {
+    return AI_UNAVAILABLE;
+  }
+}
+
+export interface ScreenerFilter {
+  field: string;
+  op: string;
+  value: string;
+}
+
+export interface ScreenerParseOut {
+  available: boolean;
+  filters: ScreenerFilter[];
+  sort_field: string | null;
+  sort_dir: string;
+  note: string | null;
+  model: string | null;
+}
+
+/** Translate a plain-English screen into structured filters (parse only). */
+export async function parseScreen(query: string): Promise<ScreenerParseOut> {
+  const off: ScreenerParseOut = {
+    available: false,
+    filters: [],
+    sort_field: null,
+    sort_dir: "desc",
+    note: null,
+    model: null,
+  };
+  if (await isDemoMode()) return off;
+  try {
+    return await request<ScreenerParseOut>("/ai/screener/parse", {
+      method: "POST",
+      body: JSON.stringify({ query }),
+    });
+  } catch {
+    return off;
+  }
+}
+
+export interface ChatTurn {
+  role: "user" | "assistant";
+  content: string;
+}
+
+/** Stream a grounded assistant reply. Calls `onToken` for each chunk as it arrives
+ *  and resolves with the final text + citations. Falls back to the non-streaming
+ *  /ai/chat endpoint in demo mode or on any error, so it never throws. */
+export async function streamAssistant(
+  messages: ChatTurn[],
+  context: { symbol?: string | null },
+  onToken: (t: string) => void,
+  signal?: AbortSignal,
+): Promise<{ text: string; citations: Citation[] }> {
+  const payload = JSON.stringify({ messages, context });
+
+  if (await backendUp()) {
+    try {
+      const res = await fetch(`${API_BASE}/ai/chat/stream`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: payload,
+        signal,
+      });
+      if (res.ok && res.body) {
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let buf = "";
+        let text = "";
+        let citations: Citation[] = [];
+        for (;;) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buf += decoder.decode(value, { stream: true });
+          const parts = buf.split("\n\n");
+          buf = parts.pop() ?? ""; // keep the last (possibly partial) frame
+          for (const part of parts) {
+            const line = part.trim();
+            if (!line.startsWith("data:")) continue;
+            const data = line.slice(5).trim();
+            if (data === "[DONE]") continue;
+            try {
+              const obj = JSON.parse(data);
+              if (obj.type === "token") {
+                text += obj.v;
+                onToken(obj.v);
+              } else if (obj.type === "citations") {
+                citations = obj.v as Citation[];
+              }
+            } catch {
+              /* ignore a malformed/partial frame */
+            }
+          }
+        }
+        return { text, citations };
+      }
+    } catch {
+      /* fall through to the non-streaming fallback */
+    }
+  }
+
+  // Fallback: single-shot answer (also the demo-mode path).
+  try {
+    const resp = await request<AiResponse>("/ai/chat", { method: "POST", body: payload });
+    const text = resp.text ?? "";
+    if (text) onToken(text);
+    return { text, citations: resp.citations ?? [] };
+  } catch {
+    return { text: "", citations: [] };
+  }
+}
+
 export interface AccountSummary {
   cash: number | null;
 }

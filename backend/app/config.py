@@ -9,6 +9,8 @@ class Settings(BaseSettings):
     fernet_key: str
     alpaca_endpoint: str = "https://paper-api.alpaca.markets"
     finnhub_api_key: str = ""  # optional; research endpoints degrade gracefully without it
+    openai_api_key: str = ""  # optional; the AI advisory layer degrades gracefully without it
+    openai_model: str = "gpt-5.6"  # model used for every AI feature; swappable via OPENAI_MODEL
 
 
 @lru_cache

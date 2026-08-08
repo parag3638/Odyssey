@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { PaperBadge } from "./PaperBadge";
+import { AiAssistant } from "./AiAssistant";
 import { listAccounts } from "@/lib/api";
 import { initials as toInitials } from "@/lib/format";
 import {
@@ -14,6 +15,7 @@ import {
   ResearchIcon,
   SearchIcon,
   SignalsIcon,
+  SparklesIcon,
   StocksIcon,
 } from "./icons";
 
@@ -54,6 +56,7 @@ export function Nav({
   // Real account, fetched once so every screen is consistent.
   const [acctLabel, setAcctLabel] = useState(accountLabel ?? "Account");
   const [acctInitials, setAcctInitials] = useState(accountInitials ?? "··");
+  const [aiOpen, setAiOpen] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -199,6 +202,15 @@ export function Nav({
           Search name or symbol
           <span className="kbd">/</span>
         </button>
+        <button
+          type="button"
+          className="icon-btn ai-launch"
+          aria-label="AI assistant"
+          title="Assistant"
+          onClick={() => setAiOpen(true)}
+        >
+          <SparklesIcon />
+        </button>
         <PaperBadge />
         <button
           className="acct-pill"
@@ -241,6 +253,16 @@ export function Nav({
             {item.icon}
           </button>
         ))}
+        <span className="rail-div" />
+        <button
+          type="button"
+          className="lr ai-launch"
+          data-tip="Assistant"
+          aria-label="AI assistant"
+          onClick={() => setAiOpen(true)}
+        >
+          <SparklesIcon />
+        </button>
         <span className="sp" />
         <button
           className="lr av"
@@ -252,6 +274,8 @@ export function Nav({
           {acctInitials}
         </button>
       </aside>
+
+      <AiAssistant open={aiOpen} onClose={() => setAiOpen(false)} />
     </>
   );
 }

@@ -2,6 +2,7 @@
 
 import { Nav } from "@/components/Nav";
 import { HoldingsTable } from "@/components/HoldingsTable";
+import { PortfolioHealth } from "@/components/PortfolioHealth";
 import { Card, Skeleton, Stat, StatGrid } from "@/components/ui";
 import { usePortfolio } from "@/lib/usePortfolio";
 import { initials, money, signClass, signedMoney } from "@/lib/format";
@@ -50,7 +51,13 @@ export default function PositionsPage() {
           </StatGrid>
         </Card>
 
-        <div className="reveal" style={{ ["--i" as string]: 2 }}>
+        {pf.hasData && (
+          <div className="reveal" style={{ ["--i" as string]: 2 }}>
+            <PortfolioHealth refreshKey={pf.holdings.map((h) => h.symbol).join(",")} />
+          </div>
+        )}
+
+        <div className="reveal" style={{ ["--i" as string]: 3 }}>
           <HoldingsTable
             holdings={pf.holdings}
             totalValue={pf.balance}
