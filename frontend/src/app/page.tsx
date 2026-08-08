@@ -90,7 +90,7 @@ export default function HomePage() {
     <>
       <Nav active="overview" accountLabel={accountLabel} accountInitials={initials(accountLabel)} />
 
-      <div className="wrap wide">
+      <div className="wrap roomy">
         <div className="greet reveal" style={{ ["--i" as string]: 0 }}>
           {greet}, Captain
         </div>

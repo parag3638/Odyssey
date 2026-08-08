@@ -16,7 +16,7 @@ export default function ResearchSymbolPage() {
     <>
       <Nav active="research" accountLabel="my-paper" accountInitials="MY" />
 
-      <div className="wrap wide">
+      <div className="wrap roomy">
         <Link className="back" href="/research">
           <ChevronLeftIcon />
           Research

@@ -28,7 +28,7 @@ export default function ResearchLandingPage() {
   return (
     <>
       <Nav active="research" accountLabel="my-paper" accountInitials="MY" />
-      <div className="wrap wide">
+      <div className="wrap roomy">
         <div className="tcard" style={{ padding: "22px" }}>
           <Skeleton w={220} h={20} />
           <Skeleton w={140} h={36} style={{ marginTop: 16 }} />
