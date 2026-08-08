@@ -93,22 +93,29 @@ export function StockFinderTable({
   }
 
   // Enrich the visible page's symbols (those not already requested).
+  //
+  // No "cancelled" guard here on purpose: `pageRows` legitimately changes
+  // reference more than once during initial load (as `rows` populates from
+  // listStocks() and `pageSize` settles from the fill-to-height calc), each
+  // re-running this effect. A cancelled-on-cleanup guard would discard an
+  // *earlier* invocation's successful result once a *later* one supersedes
+  // it — but `requested.current` was already marked for those symbols in
+  // that earlier invocation, so nothing retries them either. Net effect:
+  // permanently orphaned symbols with no data, deterministically, on every
+  // load. Applying a symbol-keyed metrics merge is always safe regardless
+  // of which render triggered the fetch, so there's nothing to guard here.
   useEffect(() => {
     const need = pageRows.map((r) => r.symbol).filter((s) => !requested.current.has(s));
     if (need.length === 0) return;
     need.forEach((s) => requested.current.add(s));
-    let cancelled = false;
     getStockMetrics(need)
       .then((res) => {
-        if (!cancelled) setMetrics((prev) => ({ ...prev, ...res }));
+        setMetrics((prev) => ({ ...prev, ...res }));
       })
       .catch(() => {
         // allow a later retry if the request failed
         need.forEach((s) => requested.current.delete(s));
       });
-    return () => {
-      cancelled = true;
-    };
   }, [pageRows]);
 
   // A metric cell: skeleton until the symbol resolves, then value or "—".

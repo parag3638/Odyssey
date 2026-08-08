@@ -126,15 +126,38 @@ function fromSnapshot(snap: Snapshot, path: string): unknown {
   return undefined;
 }
 
+// Hard ceiling on any single request. Without this, a request that hangs at
+// the network layer (dead connection that never completes, rather than a
+// clean error) leaves its promise permanently pending — callers that track
+// "already requested" symbols (e.g. StockFinderTable's metrics fetch) then
+// never retry, since neither .then() nor .catch() ever fires. 20s is
+// generous — cold-cache fundamentals fetches have been observed taking up
+// to ~19s in degraded conditions — but finite, so a stuck request always
+// eventually fails and unblocks a retry instead of hanging forever.
+const REQUEST_TIMEOUT_MS = 20_000;
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const method = (init?.method ?? "GET").toUpperCase();
 
   if (await backendUp()) {
-    const res = await fetch(`${API_BASE}${path}`, {
-      cache: "no-store",
-      headers: { "Content-Type": "application/json" },
-      ...init,
-    });
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), REQUEST_TIMEOUT_MS);
+    let res: Response;
+    try {
+      res = await fetch(`${API_BASE}${path}`, {
+        cache: "no-store",
+        headers: { "Content-Type": "application/json" },
+        ...init,
+        signal: ctrl.signal,
+      });
+    } catch (e) {
+      if (e instanceof DOMException && e.name === "AbortError") {
+        throw new Error("Request timed out — the server took too long to respond.");
+      }
+      throw e;
+    } finally {
+      clearTimeout(timer);
+    }
     if (res.ok) return res.json() as Promise<T>;
     if (method === "GET") {
       const snap = await snapshot();
