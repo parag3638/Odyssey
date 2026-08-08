@@ -93,7 +93,7 @@ class Ticker(Base):
     name: Mapped[str] = mapped_column(String(160), default="")
     sector: Mapped[str] = mapped_column(String(60), default="", index=True)
     industry: Mapped[str] = mapped_column(String(80), default="", index=True)
-    exchange: Mapped[str] = mapped_column(String(20), default="")
+    exchange: Mapped[str] = mapped_column(String(64), default="")
     logo_url: Mapped[str] = mapped_column(String(300), default="")
     market_cap: Mapped[float | None] = mapped_column(Numeric(20, 2), nullable=True)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow, onupdate=_utcnow)
