@@ -1,36 +1,37 @@
 "use client";
 
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Nav } from "@/components/Nav";
-import { ResearchSearch } from "@/components/ResearchSearch";
-import { EmptyState } from "@/components/ui";
-import { ResearchIcon } from "@/components/icons";
+import { Skeleton } from "@/components/ui";
+import { listStocks } from "@/lib/api";
 
+/** Landing at /research always resolves to a real stock — defaults to the
+ *  largest by market cap (the API's default sort) — rather than showing an
+ *  empty "search first" state. */
 export default function ResearchLandingPage() {
   const router = useRouter();
+
+  useEffect(() => {
+    let cancelled = false;
+    listStocks({ limit: 1 })
+      .then((rows) => {
+        if (cancelled) return;
+        router.replace(`/research/${rows[0]?.symbol ?? "AAPL"}`);
+      })
+      .catch(() => !cancelled && router.replace("/research/AAPL"));
+    return () => {
+      cancelled = true;
+    };
+  }, [router]);
 
   return (
     <>
       <Nav active="research" accountLabel="my-paper" accountInitials="MY" />
-
-      <div className="wrap roomy">
-        <div className="shead reveal" style={{ ["--i" as string]: 0 }}>
-          <span className="ttl">Research</span>
-          <span className="sub">Fundamentals and news for any stock</span>
-        </div>
-
-        <div className="reveal" style={{ ["--i" as string]: 1, maxWidth: 480 }}>
-          <ResearchSearch autoFocus onSelect={(symbol) => router.push(`/research/${symbol}`)} />
-        </div>
-
-        <div className="reveal" style={{ ["--i" as string]: 2, marginTop: 24 }}>
-          <div className="tcard">
-            <EmptyState
-              icon={<ResearchIcon />}
-              title="Search a stock to get started"
-              desc="Pull up fundamentals — P/E, earnings, analyst ratings, dividends — and the latest news, all in one place."
-            />
-          </div>
+      <div className="wrap wide">
+        <div className="tcard" style={{ padding: "22px" }}>
+          <Skeleton w={220} h={20} />
+          <Skeleton w={140} h={36} style={{ marginTop: 16 }} />
         </div>
       </div>
     </>

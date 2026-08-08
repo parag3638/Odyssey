@@ -1,13 +1,19 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { listStocks, type StockRow } from "@/lib/api";
 import { TickerLogo } from "@/components/ui";
 import { SearchIcon, XIcon } from "@/components/icons";
 
 /** Live symbol/name search over the full curated universe, with a results
  *  dropdown. Shared by /research (landing) and /research/[symbol] (pinned
- *  at top, so switching stocks never means leaving the page). */
+ *  at top, so switching stocks never means leaving the page).
+ *
+ *  The results menu is portaled to <body> and positioned in fixed viewport
+ *  coordinates (same technique as the Select component) — otherwise it gets
+ *  trapped inside this input's local stacking context and can render behind
+ *  later siblings on the page. */
 export function ResearchSearch({
   autoFocus,
   onSelect,
@@ -18,20 +24,13 @@ export function ResearchSearch({
   const [all, setAll] = useState<StockRow[]>([]);
   const [q, setQ] = useState("");
   const [open, setOpen] = useState(false);
+  const [pos, setPos] = useState<{ left: number; top: number; width: number } | null>(null);
   const boxRef = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     listStocks({ limit: 500 }).then(setAll).catch(() => setAll([]));
   }, []);
-
-  useEffect(() => {
-    if (!open) return;
-    const onDoc = (e: MouseEvent) => {
-      if (boxRef.current && !boxRef.current.contains(e.target as Node)) setOpen(false);
-    };
-    document.addEventListener("mousedown", onDoc);
-    return () => document.removeEventListener("mousedown", onDoc);
-  }, [open]);
 
   const matches = useMemo(() => {
     const query = q.trim().toUpperCase();
@@ -41,6 +40,34 @@ export function ResearchSearch({
       .slice(0, 8);
   }, [all, q]);
 
+  const showMenu = open && matches.length > 0;
+
+  useLayoutEffect(() => {
+    if (!showMenu) return;
+    const place = () => {
+      const r = boxRef.current?.getBoundingClientRect();
+      if (!r) return;
+      setPos({ left: r.left, top: r.bottom + 8, width: r.width });
+    };
+    place();
+    window.addEventListener("scroll", place, true);
+    window.addEventListener("resize", place);
+    return () => {
+      window.removeEventListener("scroll", place, true);
+      window.removeEventListener("resize", place);
+    };
+  }, [showMenu]);
+
+  useEffect(() => {
+    if (!open) return;
+    const onDoc = (e: MouseEvent) => {
+      const t = e.target as Node;
+      if (!boxRef.current?.contains(t) && !menuRef.current?.contains(t)) setOpen(false);
+    };
+    document.addEventListener("mousedown", onDoc);
+    return () => document.removeEventListener("mousedown", onDoc);
+  }, [open]);
+
   function pick(symbol: string) {
     setQ("");
     setOpen(false);
@@ -48,7 +75,7 @@ export function ResearchSearch({
   }
 
   return (
-    <div className="rsearch" ref={boxRef} style={{ position: "relative" }}>
+    <div className="rsearch" ref={boxRef}>
       <div className="searchbar" style={{ minWidth: 320 }}>
         <SearchIcon />
         <input
@@ -75,28 +102,36 @@ export function ResearchSearch({
         )}
       </div>
 
-      {open && matches.length > 0 && (
-        <div className="tcard rsearch-menu" role="listbox">
-          {matches.map((r) => (
-            <button
-              type="button"
-              key={r.symbol}
-              className="rsearch-row"
-              role="option"
-              aria-selected={false}
-              onClick={() => pick(r.symbol)}
-            >
-              <div className="sym">
-                <TickerLogo symbol={r.symbol} logo={r.logo_url || undefined} />
-                <span>
-                  <span className="tk">{r.symbol}</span>
-                  {r.name && <span className="nm3">{r.name}</span>}
-                </span>
-              </div>
-            </button>
-          ))}
-        </div>
-      )}
+      {showMenu &&
+        pos &&
+        createPortal(
+          <div
+            ref={menuRef}
+            className="rsearch-menu"
+            role="listbox"
+            style={{ left: pos.left, top: pos.top, width: pos.width }}
+          >
+            {matches.map((r) => (
+              <button
+                type="button"
+                key={r.symbol}
+                className="rsearch-row"
+                role="option"
+                aria-selected={false}
+                onClick={() => pick(r.symbol)}
+              >
+                <div className="sym">
+                  <TickerLogo symbol={r.symbol} logo={r.logo_url || undefined} />
+                  <span>
+                    <span className="tk">{r.symbol}</span>
+                    {r.name && <span className="nm3">{r.name}</span>}
+                  </span>
+                </div>
+              </button>
+            ))}
+          </div>,
+          document.body,
+        )}
     </div>
   );
 }
