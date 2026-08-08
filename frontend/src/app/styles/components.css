@@ -435,6 +435,29 @@
   font-size: 11px;
 }
 
+/* research search — results dropdown under the searchbar */
+.rsearch-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  padding: 6px;
+  z-index: 60;
+  max-height: 360px;
+  overflow: auto;
+}
+.rsearch-row {
+  display: block;
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 9px;
+  text-align: left;
+  transition: var(--dur-1);
+}
+.rsearch-row:hover {
+  background: var(--card-2);
+}
+
 /* ===========================================================================
    3. FORM FIELDS
    =========================================================================== */
