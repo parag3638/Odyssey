@@ -144,7 +144,12 @@ textarea {
 :focus-visible {
   outline: 2px solid var(--ring);
   outline-offset: 2px;
-  border-radius: 4px;
+  /* No border-radius override here on purpose — a fixed radius on the
+     outline mismatches every element that isn't ~4px itself (pills,
+     .selectopt at 9px, buttons at 11px, …), which is what made focused
+     Select options etc. look like a boxy rectangle stamped over a rounded
+     shape. Modern browsers round the outline to the focused element's own
+     border-radius automatically when this isn't set. */
 }
 :focus:not(:focus-visible) {
   outline: none;
