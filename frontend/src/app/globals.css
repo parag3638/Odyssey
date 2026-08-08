@@ -3,6 +3,16 @@
 @import "./styles/base.css";
 @import "./styles/components.css";
 @import "./styles/charts.css";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+/* This app switches themes via a data-theme="dark"|"light" ATTRIBUTE on
+   <html> (see tokens.css), not Tailwind's usual .dark CLASS convention that
+   `shadcn init` assumes by default — repoint the `dark:` variant so any
+   shadcn-generated utility that uses it (present or future `shadcn add`)
+   actually tracks the app's real theme switch instead of silently never
+   firing. */
+@custom-variant dark (&:is([data-theme="dark"] *));
 
 /* expose key tokens as Tailwind v4 color/font utilities */
 @theme inline {
@@ -20,4 +30,39 @@
   --color-loss: var(--loss);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  /* --- shadcn/ui bridge ---------------------------------------------------
+     Every name below is what shadcn-generated components (button.tsx,
+     select.tsx, dialog.tsx, …) expect via Tailwind utilities like
+     `bg-primary`/`text-foreground`/`border-border`. Each maps onto an
+     EXISTING tokens.css variable — which already flips correctly between
+     [data-theme="dark"] and [data-theme="light"] — so this bridge needs no
+     theme-specific code of its own and stays correct in both themes for
+     free. `--primary` intentionally matches `.btn.buy`'s current
+     inverted-neutral look (var(--text)/var(--bg)), not green — green stays
+     reserved for the Switch and gain-tone badges/pills, unchanged. */
+  --color-background: var(--bg);
+  --color-foreground: var(--text);
+  --color-card: var(--card);
+  --color-card-foreground: var(--text);
+  --color-popover: var(--card);
+  --color-popover-foreground: var(--text);
+  --color-primary: var(--text);
+  --color-primary-foreground: var(--bg);
+  --color-secondary: var(--card-2);
+  --color-secondary-foreground: var(--text);
+  --color-muted: var(--card-3);
+  --color-muted-foreground: var(--text-2);
+  --color-accent: var(--active);
+  --color-accent-foreground: var(--text);
+  --color-destructive: var(--loss);
+  --color-destructive-foreground: var(--bg);
+  --color-border: var(--line);
+  --color-input: var(--line);
+  --color-ring: var(--ring);
+
+  --radius-sm: calc(var(--r-2) - 4px);
+  --radius-md: calc(var(--r-2) - 2px);
+  --radius-lg: var(--r-2);
+  --radius-xl: calc(var(--r-2) + 4px);
 }
