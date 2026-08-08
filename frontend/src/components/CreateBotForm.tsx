@@ -5,7 +5,13 @@ import { useRouter } from "next/navigation";
 import { createBot, listAccounts, type AccountOut } from "@/lib/api";
 import { Select } from "@/components/ui";
 
-export function CreateBotForm({ bare }: { bare?: boolean }) {
+export function CreateBotForm({
+  bare,
+  onNeedAccount,
+}: {
+  bare?: boolean;
+  onNeedAccount?: () => void;
+}) {
   const router = useRouter();
   const [accounts, setAccounts] = useState<AccountOut[]>([]);
   const [accountId, setAccountId] = useState("");
@@ -21,6 +27,7 @@ export function CreateBotForm({ bare }: { bare?: boolean }) {
   const [perTradeNotional, setPerTradeNotional] = useState("1000");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -32,6 +39,8 @@ export function CreateBotForm({ bare }: { bare?: boolean }) {
         if (list[0]) setAccountId(list[0].id);
       } catch {
         if (!cancelled) setError("Could not load accounts.");
+      } finally {
+        if (!cancelled) setLoaded(true);
       }
     })();
     return () => {
@@ -109,6 +118,24 @@ export function CreateBotForm({ bare }: { bare?: boolean }) {
       setError(err instanceof Error ? err.message : "Could not create bot.");
       setPending(false);
     }
+  }
+
+  if (loaded && accounts.length === 0 && !error) {
+    return (
+      <div className={bare ? "" : "tcard"} style={bare ? undefined : { marginTop: 12, padding: "20px 22px" }}>
+        <div className="faint">Connect an account to create a bot.</div>
+        {onNeedAccount && (
+          <button
+            type="button"
+            className="btn buy"
+            style={{ marginTop: 12 }}
+            onClick={onNeedAccount}
+          >
+            Connect account
+          </button>
+        )}
+      </div>
+    );
   }
 
   return (

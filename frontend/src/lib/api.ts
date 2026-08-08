@@ -179,6 +179,15 @@ export function listAccounts(): Promise<AccountOut[]> {
   return request<AccountOut[]>("/accounts");
 }
 
+export function createAccount(input: {
+  label: string;
+  alpaca_key_id: string;
+  alpaca_secret: string;
+  endpoint?: string;
+}): Promise<AccountOut> {
+  return request<AccountOut>("/accounts", { method: "POST", body: JSON.stringify(input) });
+}
+
 export function getPositions(accountId: string): Promise<Position[]> {
   return request<Position[]>(`/positions/${accountId}`);
 }

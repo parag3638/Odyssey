@@ -44,29 +44,31 @@ export function usePortfolio() {
     }
   }, []);
 
+  const loadAccount = useCallback(async () => {
+    try {
+      const accounts = await listAccounts();
+      const first = accounts[0] ?? null;
+      setAccount(first);
+      if (first) await loadAll(first.id);
+      else {
+        setLoading(false);
+        setError("No accounts found. Connect one to begin.");
+      }
+    } catch (e) {
+      setLoading(false);
+      setError(e instanceof Error ? e.message : "Could not reach the backend.");
+    }
+  }, [loadAll]);
+
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      try {
-        const accounts = await listAccounts();
-        if (cancelled) return;
-        const first = accounts[0] ?? null;
-        setAccount(first);
-        if (first) await loadAll(first.id);
-        else {
-          setLoading(false);
-          setError("No accounts found. Create one in the backend to begin.");
-        }
-      } catch (e) {
-        if (cancelled) return;
-        setLoading(false);
-        setError(e instanceof Error ? e.message : "Could not reach the backend.");
-      }
+      if (!cancelled) await loadAccount();
     })();
     return () => {
       cancelled = true;
     };
-  }, [loadAll]);
+  }, [loadAccount]);
 
   const refresh = useCallback(() => {
     if (account) void loadAll(account.id);
@@ -131,6 +133,7 @@ export function usePortfolio() {
     loading,
     error,
     refresh,
+    reloadAccount: loadAccount,
     hasData: positions.length > 0,
   };
 }

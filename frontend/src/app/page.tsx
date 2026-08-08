@@ -13,6 +13,7 @@ import { usePortfolio } from "@/lib/usePortfolio";
 import { Nav } from "@/components/Nav";
 import { ActiveBots } from "@/components/ActiveBots";
 import { CreateBotForm } from "@/components/CreateBotForm";
+import { ConnectAccountForm } from "@/components/ConnectAccountForm";
 import { OrderForm } from "@/components/OrderForm";
 import { StocksTable } from "@/components/StocksTable";
 import { MoversWidget } from "@/components/MoversWidget";
@@ -38,6 +39,7 @@ export default function HomePage() {
   const [range, setRange] = useState("1M");
   const [showOrder, setShowOrder] = useState(false);
   const [showBot, setShowBot] = useState(false);
+  const [showConnect, setShowConnect] = useState(false);
 
   useEffect(() => {
     listStocks({ limit: 200 }).then(setStocks).catch(() => setStocks([]));
@@ -167,12 +169,41 @@ export default function HomePage() {
             }}
           />
         ) : (
-          <div className="faint">Connect an account to place orders.</div>
+          <div>
+            <div className="faint">Connect an account to place orders.</div>
+            <button
+              type="button"
+              className="btn buy"
+              style={{ marginTop: 12 }}
+              onClick={() => {
+                setShowOrder(false);
+                setShowConnect(true);
+              }}
+            >
+              Connect account
+            </button>
+          </div>
         )}
       </Modal>
 
       <Modal open={showBot} onClose={() => setShowBot(false)} title="New bot" width={560}>
-        <CreateBotForm bare />
+        <CreateBotForm
+          bare
+          onNeedAccount={() => {
+            setShowBot(false);
+            setShowConnect(true);
+          }}
+        />
+      </Modal>
+
+      <Modal open={showConnect} onClose={() => setShowConnect(false)} title="Connect account" width={520}>
+        <ConnectAccountForm
+          bare
+          onConnected={() => {
+            pf.reloadAccount();
+            setShowConnect(false);
+          }}
+        />
       </Modal>
     </>
   );
