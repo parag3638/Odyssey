@@ -657,10 +657,17 @@ input::placeholder {
   position: absolute;
   top: -1px;
   left: 18px;
-  right: 18px;
+  width: 20px;
   height: 2px;
   border-radius: 2px;
   background: var(--gain);
+  opacity: 0.8;
+}
+.tcard thead th.sortcol:not(.l)::before {
+  /* Right-aligned columns (numeric) — anchor the indicator under the text,
+     which sits at the right edge of the header cell, not the left. */
+  left: auto;
+  right: 18px;
 }
 .tcard tbody td {
   padding: 15px 20px;

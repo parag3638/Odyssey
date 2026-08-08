@@ -1,16 +1,19 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Nav } from "@/components/Nav";
 import { SignalsTable } from "@/components/SignalsTable";
 import { listAccounts, syncSignals } from "@/lib/api";
 import { initials } from "@/lib/format";
+import { useFillRows } from "@/lib/useFillRows";
 import { Button, Input, SegmentedControl } from "@/components/ui";
 import { SailIcon, SwapIcon, XIcon } from "@/components/icons";
 
 type Action = "all" | "buy" | "sell";
 
 export default function SignalsPage() {
+  const tableRef = useRef<HTMLDivElement | null>(null);
+  const pageSize = useFillRows(tableRef);
   const [accountLabel, setAccountLabel] = useState("Trading Claude");
   const [politician, setPolitician] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
@@ -119,11 +122,12 @@ export default function SignalsPage() {
           </Button>
         </div>
 
-        <div className="reveal" style={{ ["--i" as string]: 2 }}>
+        <div className="reveal" style={{ ["--i" as string]: 2 }} ref={tableRef}>
           <SignalsTable
             key={reloadKey}
             politician={politician ?? undefined}
             action={action === "all" ? undefined : action}
+            pageSize={pageSize}
           />
         </div>
       </div>

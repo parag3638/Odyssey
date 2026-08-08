@@ -1,0 +1,51 @@
+"use client";
+
+import { useEffect, useState, type RefObject } from "react";
+
+/** How many table rows fit in the remaining viewport height below the
+ *  table's top, so a page shows "as many rows as fit" and never needs a
+ *  scroll for empty space below it, instead of an arbitrary fixed page size.
+ *
+ *  Recomputes on window resize AND whenever the table container's own size
+ *  changes (via ResizeObserver) — the latter is what catches the loading
+ *  skeleton being replaced by real rows, since skeleton and real row
+ *  heights can differ and a resize-only listener would miss that entirely,
+ *  locking in a stale (usually too-small) count from before data loaded. */
+export function useFillRows(ref: RefObject<HTMLDivElement | null>) {
+  const [rows, setRows] = useState(15);
+
+  useEffect(() => {
+    const RESERVE = 180; // thead + pager + footer + breathing room
+    let raf = 0;
+    const calc = () => {
+      const el = ref.current;
+      if (!el) return;
+      const top = el.getBoundingClientRect().top;
+      const rowEl = el.querySelector("tbody tr");
+      const rowH = rowEl?.getBoundingClientRect().height || 52;
+      const avail = window.innerHeight - top - RESERVE;
+      setRows(Math.max(6, Math.floor(avail / rowH)));
+    };
+    const schedule = () => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(calc);
+    };
+
+    schedule();
+    window.addEventListener("resize", schedule);
+
+    let ro: ResizeObserver | null = null;
+    if (ref.current) {
+      ro = new ResizeObserver(schedule);
+      ro.observe(ref.current);
+    }
+
+    return () => {
+      window.removeEventListener("resize", schedule);
+      cancelAnimationFrame(raf);
+      ro?.disconnect();
+    };
+  }, [ref]);
+
+  return rows;
+}

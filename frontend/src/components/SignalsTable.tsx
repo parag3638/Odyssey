@@ -43,9 +43,11 @@ function amountKey(r: string): number {
 export function SignalsTable({
   politician,
   action,
+  pageSize,
 }: {
   politician?: string;
   action?: "buy" | "sell";
+  pageSize?: number;
 }) {
   const [signals, setSignals] = useState<Signal[]>([]);
   const [loading, setLoading] = useState(true);
@@ -176,6 +178,7 @@ export function SignalsTable({
       loading={loading}
       initialSort={{ key: "disclosed", dir: "desc" }}
       empty="No signals yet. Hit “Sync now” to pull the latest disclosures."
+      pageSize={pageSize}
     />
   );
 }

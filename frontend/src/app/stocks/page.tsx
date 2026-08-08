@@ -1,42 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, type RefObject } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Nav } from "@/components/Nav";
 import { StockFinderTable } from "@/components/StockFinderTable";
 import { IndustryFilter, type FilterState } from "@/components/IndustryFilter";
 import { getStockIndustries, listStocks, type IndustryRow, type StockRow } from "@/lib/api";
+import { useFillRows } from "@/lib/useFillRows";
 import { SailIcon } from "@/components/icons";
-
-/* How many rows fit in the viewport below the table, so a page shows "all rows
-   possible" before paginating. Measures the live row height + table offset and
-   recomputes on resize. */
-function useFillRows(ref: RefObject<HTMLDivElement | null>) {
-  const [rows, setRows] = useState(15);
-  useEffect(() => {
-    const RESERVE = 180; // thead + pager + footer + breathing room
-    const calc = () => {
-      const el = ref.current;
-      if (!el) return;
-      const top = el.getBoundingClientRect().top;
-      const rowEl = el.querySelector("tbody tr");
-      const rowH = rowEl?.getBoundingClientRect().height || 52;
-      const avail = window.innerHeight - top - RESERVE;
-      setRows(Math.max(6, Math.floor(avail / rowH)));
-    };
-    calc();
-    let raf = 0;
-    const onResize = () => {
-      cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(calc);
-    };
-    window.addEventListener("resize", onResize);
-    return () => {
-      window.removeEventListener("resize", onResize);
-      cancelAnimationFrame(raf);
-    };
-  }, [ref]);
-  return rows;
-}
 
 export default function StocksPage() {
   const [industries, setIndustries] = useState<IndustryRow[]>([]);
