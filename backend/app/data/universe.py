@@ -35,8 +35,7 @@ UNIVERSE: list[tuple[str, str, str, str]] = [
     ("DELL", "Dell Technologies", "Technology", "Computer Hardware"),
     ("SMCI", "Super Micro Computer", "Technology", "Computer Hardware"),
     # ---- Communication Services ----
-    ("GOOGL", "Alphabet Inc. (A)", "Communication Services", "Internet Content"),
-    ("GOOG", "Alphabet Inc. (C)", "Communication Services", "Internet Content"),
+    ("GOOGL", "Alphabet Inc.", "Communication Services", "Internet Content"),
     ("META", "Meta Platforms", "Communication Services", "Internet Content"),
     ("NFLX", "Netflix Inc.", "Communication Services", "Entertainment"),
     ("DIS", "Walt Disney Co.", "Communication Services", "Entertainment"),
@@ -194,7 +193,7 @@ UNIVERSE: list[tuple[str, str, str, str]] = [
 # "sort by market cap" works before any Finnhub enrichment (which overrides with
 # exact values). Rough, slowly-changing figures — not precise quotes.
 APPROX_MARKET_CAP_B: dict[str, float] = {
-    "AAPL": 3400, "MSFT": 3100, "NVDA": 3300, "GOOGL": 2200, "GOOG": 2190,
+    "AAPL": 3400, "MSFT": 3100, "NVDA": 3300, "GOOGL": 2200,
     "AMZN": 2000, "META": 1300, "AVGO": 800, "TSLA": 800, "LLY": 700,
     "WMT": 650, "JPM": 650, "V": 560, "XOM": 520, "UNH": 500, "ORCL": 480,
     "MA": 450, "COST": 410, "HD": 400, "PG": 390, "JNJ": 380, "NFLX": 360,
