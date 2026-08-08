@@ -429,6 +429,17 @@
 .searchbar:hover {
   border-color: var(--text-3);
 }
+.searchbar:focus-within {
+  border-color: var(--ring);
+  box-shadow: 0 0 0 3px var(--ring);
+}
+.searchbar input:focus-visible {
+  /* The inner input is borderless/transparent by design — its own default
+     focus-visible outline is a small fixed-radius rectangle that doesn't
+     match this pill's 10px radius. The glow above, on the pill itself,
+     replaces it (same treatment Select's trigger already uses). */
+  outline: none;
+}
 .searchbar svg {
   width: 15px;
   height: 15px;
