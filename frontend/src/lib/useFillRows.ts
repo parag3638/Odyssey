@@ -15,15 +15,21 @@ export function useFillRows(ref: RefObject<HTMLDivElement | null>) {
   const [rows, setRows] = useState(15);
 
   useEffect(() => {
-    const RESERVE = 180; // thead + pager + footer + breathing room
+    // Pager row (~54px) + a little breathing room below it — thead is
+    // measured directly below rather than folded into a flat guess, so this
+    // constant only has to cover the one piece that can't be measured in
+    // advance (the pager doesn't exist in the DOM until pageSize is known).
+    const PAGER_AND_MARGIN = 70;
     let raf = 0;
     const calc = () => {
       const el = ref.current;
       if (!el) return;
       const top = el.getBoundingClientRect().top;
+      const theadEl = el.querySelector("thead");
+      const theadH = theadEl?.getBoundingClientRect().height || 47;
       const rowEl = el.querySelector("tbody tr");
       const rowH = rowEl?.getBoundingClientRect().height || 52;
-      const avail = window.innerHeight - top - RESERVE;
+      const avail = window.innerHeight - top - theadH - PAGER_AND_MARGIN;
       setRows(Math.max(6, Math.floor(avail / rowH)));
     };
     const schedule = () => {
