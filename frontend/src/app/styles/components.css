@@ -2733,7 +2733,18 @@ a.newsrow:hover {
   animation: fade var(--dur-2) var(--ease);
 }
 .modal {
-  width: 100%;
+  /* Radix's Dialog Content and Overlay are siblings (not parent/child like
+     the old hand-rolled backdrop), so centering can no longer come from a
+     `place-items: center` grid parent — position/center explicitly instead.
+     width uses the same 24px-per-side margin the old backdrop's padding
+     gave on narrow viewports; the max-width inline style (per Modal call)
+     still caps it above that. */
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 200;
+  width: calc(100% - 48px);
   background: var(--card);
   border: 1px solid var(--line);
   border-radius: var(--r-4);
