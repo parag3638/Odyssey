@@ -1563,6 +1563,47 @@ input::placeholder {
 /* AI summary — the `.newssum` prose idiom with a sparkle header + source chips */
 .aisum {
   margin-bottom: 14px;
+  padding: 15px 16px;
+}
+.aisum .nsh {
+  margin-bottom: 11px;
+}
+/* Compact prose: the summary is a glance, not an article — long ones scroll
+   inside a bounded body so the card never pushes the tab rail down the page. */
+.aisum .nstext {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-2);
+}
+.aisum-scroll {
+  max-height: 178px;
+  overflow-y: auto;
+  padding-right: 8px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--card-3) transparent;
+  overscroll-behavior: contain;
+}
+.aisum-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+.aisum-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.aisum-scroll::-webkit-scrollbar-thumb {
+  background: var(--card-3);
+  border-radius: var(--r-pill);
+}
+.aisum-scroll::-webkit-scrollbar-thumb:hover {
+  background: var(--text-3);
+}
+/* Skeleton mirrors the loaded body's rhythm so the card doesn't resize on load. */
+.aisum-scroll.is-skel {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+.aisum .nsfoot {
+  margin-top: 12px;
 }
 .aisum .aisum-title {
   display: inline-flex;
@@ -1588,20 +1629,20 @@ input::placeholder {
 .aisum-cites {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 14px;
+  gap: 5px;
+  margin-top: 12px;
 }
 .aisum-chip {
-  max-width: 200px;
+  max-width: 160px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 11.5px;
-  color: var(--text-2);
+  font-size: 11px;
+  color: var(--text-3);
   background: var(--card-2);
   border: 1px solid var(--line);
   border-radius: var(--r-pill);
-  padding: 3px 10px;
+  padding: 2px 9px;
   text-decoration: none;
   transition: background var(--dur-1) var(--ease), color var(--dur-1) var(--ease);
 }

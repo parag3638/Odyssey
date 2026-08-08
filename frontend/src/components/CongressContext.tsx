@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { CitationChips } from "@/components/CitationChips";
 import { SparklesIcon } from "@/components/icons";
 import { getCongressContext, type AiResponse } from "@/lib/api";
 
@@ -33,21 +34,7 @@ export function CongressContext({ symbol }: { symbol: string }) {
         <SparklesIcon /> AI read
       </div>
       <div className="cc-text">{data.text.replace(/\s?\[[a-z]+\d*\]/g, "")}</div>
-      {data.citations.length > 0 && (
-        <div className="aisum-cites">
-          {data.citations.map((c) => (
-            <a
-              key={c.id}
-              className="aisum-chip"
-              href={c.url}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              {c.label}
-            </a>
-          ))}
-        </div>
-      )}
+      <CitationChips citations={data.citations} />
     </div>
   );
 }

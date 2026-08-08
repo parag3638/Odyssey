@@ -10,6 +10,7 @@ import {
   DialogTitle as ShadcnDialogTitle,
 } from "@/components/ui/dialog";
 import { ArrowUpRightIcon, SparklesIcon, XIcon } from "@/components/icons";
+import { CitationChips } from "@/components/CitationChips";
 import { streamAssistant, type ChatTurn, type Citation } from "@/lib/api";
 
 /* Global, context-aware AI assistant — a right-side slide-in drawer. Streams
@@ -170,20 +171,8 @@ export function AiAssistant({ open, onClose }: { open: boolean; onClose: () => v
                   ) : (
                     <div className="aimsg-bubble">{displayText(m.content)}</div>
                   )}
-                  {m.role === "assistant" && m.citations && m.citations.length > 0 && (
-                    <div className="aisum-cites">
-                      {m.citations.map((c) => (
-                        <a
-                          key={c.id}
-                          className="aisum-chip"
-                          href={c.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          {c.label}
-                        </a>
-                      ))}
-                    </div>
+                  {m.role === "assistant" && m.citations && (
+                    <CitationChips citations={m.citations} />
                   )}
                 </div>
               ))
