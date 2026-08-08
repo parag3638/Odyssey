@@ -5,6 +5,7 @@ import type { CSSProperties, ReactNode } from "react";
 import { logoColor, logoUrl, pct, signClass, signedMoney } from "@/lib/format";
 import { Badge as ShadcnBadge } from "./badge";
 import { Skeleton as ShadcnSkeleton } from "./skeleton";
+import { Switch as ShadcnSwitch } from "./switch";
 
 /* ---------------- Card ---------------- */
 export function Card({
@@ -180,13 +181,11 @@ export function Switch({
   label?: string;
 }) {
   return (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={on}
+    <ShadcnSwitch
+      checked={on}
+      onCheckedChange={() => onToggle()}
       aria-label={label}
       className={`switch${on ? " on" : ""}`}
-      onClick={onToggle}
     />
   );
 }

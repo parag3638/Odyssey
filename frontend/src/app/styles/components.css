@@ -403,6 +403,12 @@
   background: #04130c;
   transform: translateX(16px);
 }
+/* Radix's Switch renders a real thumb element (for its own default look) —
+   this app's thumb is the ::after pseudo-element above, so hide the real one
+   to avoid a duplicate. */
+.switch [data-slot="switch-thumb"] {
+  display: none;
+}
 
 /* search field */
 .searchbar {

@@ -5,6 +5,11 @@ import type { ButtonHTMLAttributes, KeyboardEvent, ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { CheckIcon, ChevronDownIcon, SearchIcon } from "@/components/icons";
 import { Button as ShadcnButton } from "./button";
+import {
+  Tabs as ShadcnTabs,
+  TabsList as ShadcnTabsList,
+  TabsTrigger as ShadcnTabsTrigger,
+} from "./tabs";
 
 /* ---------------- Button ----------------
    Wraps shadcn's Button (for its Slot/asChild plumbing) but keeps this
@@ -106,20 +111,19 @@ export function Tabs<T extends string>({
   ghost?: boolean;
 }) {
   return (
-    <div className={`tabs${ghost ? " ghost" : ""}`} role="tablist">
-      {asOptions(options).map((o) => (
-        <button
-          key={o.value}
-          type="button"
-          role="tab"
-          aria-selected={o.value === value}
-          className={`tab${o.value === value ? " on" : ""}`}
-          onClick={() => onChange(o.value)}
-        >
-          {o.label}
-        </button>
-      ))}
-    </div>
+    <ShadcnTabs value={value} onValueChange={(v) => onChange(v as T)}>
+      <ShadcnTabsList className={`tabs${ghost ? " ghost" : ""}`}>
+        {asOptions(options).map((o) => (
+          <ShadcnTabsTrigger
+            key={o.value}
+            value={o.value}
+            className={`tab${o.value === value ? " on" : ""}`}
+          >
+            {o.label}
+          </ShadcnTabsTrigger>
+        ))}
+      </ShadcnTabsList>
+    </ShadcnTabs>
   );
 }
 
