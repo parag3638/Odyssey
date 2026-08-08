@@ -4,8 +4,16 @@ import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import type { ButtonHTMLAttributes, KeyboardEvent, ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { CheckIcon, ChevronDownIcon, SearchIcon } from "@/components/icons";
+import { Button as ShadcnButton } from "./button";
 
-/* ---------------- Button ---------------- */
+/* ---------------- Button ----------------
+   Wraps shadcn's Button (for its Slot/asChild plumbing) but keeps this
+   app's own literal .btn/.btn.<variant> classes doing all the actual
+   visual work — components.css is imported unlayered, so it always wins
+   over shadcn's Tailwind-utility classes in the cascade regardless, but
+   we pass shadcn's own default-variant classes through anyway for
+   consistency with future shadcn-native consumers. Prop API unchanged so
+   no call site in the app needs to change. */
 type Variant = "default" | "primary" | "buy" | "sell" | "ghost";
 export function Button({
   variant = "default",
@@ -20,9 +28,9 @@ export function Button({
 } & ButtonHTMLAttributes<HTMLButtonElement>) {
   const v = variant === "default" ? "" : ` ${variant}`;
   return (
-    <button className={`btn${v}${sm ? " sm" : ""} ${className}`} {...rest}>
+    <ShadcnButton className={`btn${v}${sm ? " sm" : ""} ${className}`} {...rest}>
       {children}
-    </button>
+    </ShadcnButton>
   );
 }
 

@@ -3,6 +3,8 @@
 import { useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
 import { logoColor, logoUrl, pct, signClass, signedMoney } from "@/lib/format";
+import { Badge as ShadcnBadge } from "./badge";
+import { Skeleton as ShadcnSkeleton } from "./skeleton";
 
 /* ---------------- Card ---------------- */
 export function Card({
@@ -66,7 +68,7 @@ export function Badge({
   children: ReactNode;
   tone?: "g" | "r" | "n";
 }) {
-  return <span className={`badge ${tone}`}>{children}</span>;
+  return <ShadcnBadge className={`badge ${tone}`}>{children}</ShadcnBadge>;
 }
 
 /* Signed money + percent pill — the holdings-table return cell (ref #8). */
@@ -202,7 +204,7 @@ export function Skeleton({
   style?: CSSProperties;
 }) {
   return (
-    <div
+    <ShadcnSkeleton
       className="skeleton"
       style={{ width: w, height: h, borderRadius: r, ...style }}
     />
