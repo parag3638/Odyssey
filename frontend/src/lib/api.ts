@@ -1,5 +1,5 @@
 const API_BASE =
-  process.env.NEXT_PUBLIC_API_BASE ?? "http://localhost:8000";
+  process.env.NEXT_PUBLIC_API_BASE ?? "https://site--odyssey-fastapi--jhkkz9lzfqht.code.run";
 
 export interface Position {
   symbol: string;

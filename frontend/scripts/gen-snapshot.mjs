@@ -3,7 +3,7 @@
 // Run with the backend up:  node scripts/gen-snapshot.mjs
 import { writeFileSync } from "node:fs";
 
-const BASE = process.env.API_BASE || "http://localhost:8000";
+const BASE = process.env.API_BASE || "https://site--odyssey-fastapi--jhkkz9lzfqht.code.run";
 const OUT = new URL("../public/snapshot.json", import.meta.url);
 
 // KPI-relevant fundamentals keys (mirrors buildKpis) — keep the snapshot lean.
