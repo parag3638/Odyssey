@@ -18,7 +18,7 @@ import { OrderForm } from "@/components/OrderForm";
 import { StocksTable } from "@/components/StocksTable";
 import { MoversWidget } from "@/components/MoversWidget";
 import { PoliticianTrades } from "@/components/PoliticianTrades";
-import { Card, Modal, PromoCarousel, KpiStrip } from "@/components/ui";
+import { Button, Card, Modal, PromoCarousel, KpiStrip } from "@/components/ui";
 import { PlusIcon, SparklesIcon } from "@/components/icons";
 import { StockHero } from "@/components/StockHero";
 import { useStockHero } from "@/lib/useStockHero";
@@ -171,9 +171,8 @@ export default function HomePage() {
         ) : (
           <div>
             <div className="faint">Connect an account to place orders.</div>
-            <button
-              type="button"
-              className="btn buy"
+            <Button
+              variant="buy"
               style={{ marginTop: 12 }}
               onClick={() => {
                 setShowOrder(false);
@@ -181,7 +180,7 @@ export default function HomePage() {
               }}
             >
               Connect account
-            </button>
+            </Button>
           </div>
         )}
       </Modal>

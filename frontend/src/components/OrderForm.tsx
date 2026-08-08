@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { placeOrder, type OrderSide } from "@/lib/api";
+import { Button, Field, Input } from "@/components/ui";
 
 type Result =
   | { kind: "ok"; text: string }
@@ -59,9 +60,8 @@ export function OrderForm({
           submit("buy");
         }}
       >
-        <div className="field">
-          <label htmlFor="of-symbol">Symbol</label>
-          <input
+        <Field label="Symbol" htmlFor="of-symbol">
+          <Input
             id="of-symbol"
             name="symbol"
             placeholder="AAPL"
@@ -70,10 +70,9 @@ export function OrderForm({
             onChange={(e) => setSymbol(e.target.value)}
             style={{ width: 140 }}
           />
-        </div>
-        <div className="field">
-          <label htmlFor="of-qty">Quantity</label>
-          <input
+        </Field>
+        <Field label="Quantity" htmlFor="of-qty">
+          <Input
             id="of-qty"
             name="qty"
             type="number"
@@ -84,18 +83,13 @@ export function OrderForm({
             onChange={(e) => setQty(e.target.value)}
             style={{ width: 120 }}
           />
-        </div>
-        <button type="submit" className="btn buy" disabled={pending}>
+        </Field>
+        <Button type="submit" variant="buy" disabled={pending}>
           {pending ? "Placing…" : "Buy"}
-        </button>
-        <button
-          type="button"
-          className="btn sell"
-          disabled={pending}
-          onClick={() => submit("sell")}
-        >
+        </Button>
+        <Button type="button" variant="sell" disabled={pending} onClick={() => submit("sell")}>
           Sell
-        </button>
+        </Button>
       </form>
 
       {result && (

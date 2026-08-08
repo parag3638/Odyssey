@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { createAccount, type AccountOut } from "@/lib/api";
+import { Button, Field, Input } from "@/components/ui";
 
 export function ConnectAccountForm({
   bare,
@@ -48,9 +49,8 @@ export function ConnectAccountForm({
   return (
     <div className={bare ? "" : "tcard"} style={bare ? undefined : { marginTop: 12, padding: "20px 22px" }}>
       <form className="orderform" onSubmit={submit}>
-        <div className="field">
-          <label htmlFor="ca-label">Label</label>
-          <input
+        <Field label="Label" htmlFor="ca-label">
+          <Input
             id="ca-label"
             name="label"
             placeholder="Primary"
@@ -59,10 +59,9 @@ export function ConnectAccountForm({
             onChange={(e) => setLabel(e.target.value)}
             style={{ width: 140 }}
           />
-        </div>
-        <div className="field">
-          <label htmlFor="ca-key">Alpaca key</label>
-          <input
+        </Field>
+        <Field label="Alpaca key" htmlFor="ca-key">
+          <Input
             id="ca-key"
             name="alpaca_key_id"
             placeholder="PK…"
@@ -72,10 +71,9 @@ export function ConnectAccountForm({
             onChange={(e) => setKeyId(e.target.value)}
             style={{ width: 220 }}
           />
-        </div>
-        <div className="field">
-          <label htmlFor="ca-secret">Alpaca secret</label>
-          <input
+        </Field>
+        <Field label="Alpaca secret" htmlFor="ca-secret">
+          <Input
             id="ca-secret"
             name="alpaca_secret"
             type="password"
@@ -85,10 +83,9 @@ export function ConnectAccountForm({
             onChange={(e) => setSecret(e.target.value)}
             style={{ width: 220 }}
           />
-        </div>
-        <div className="field">
-          <label htmlFor="ca-endpoint">Endpoint</label>
-          <input
+        </Field>
+        <Field label="Endpoint" htmlFor="ca-endpoint">
+          <Input
             id="ca-endpoint"
             name="endpoint"
             autoComplete="off"
@@ -97,10 +94,10 @@ export function ConnectAccountForm({
             onChange={(e) => setEndpoint(e.target.value)}
             style={{ width: 240 }}
           />
-        </div>
-        <button type="submit" className="btn buy" disabled={pending}>
+        </Field>
+        <Button type="submit" variant="buy" disabled={pending}>
           {pending ? "Connecting…" : "Connect account"}
-        </button>
+        </Button>
       </form>
 
       <div className="faint" style={{ marginTop: 10 }}>

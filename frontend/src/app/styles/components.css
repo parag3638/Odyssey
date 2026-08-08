@@ -503,6 +503,13 @@ select {
 input:focus,
 select:focus {
   border-color: var(--text-3);
+  /* Plain inputs get a subtle border-only focus state — no ring glow,
+     unlike Select's .selectbtn:focus-visible. shadcn's Input applies its
+     own focus-visible ring via a layered Tailwind utility (box-shadow);
+     this unlayered rule always wins the cascade, but only for properties
+     it actually declares, so cancel the ring explicitly rather than rely
+     on that alone. */
+  box-shadow: none;
 }
 input::placeholder {
   color: var(--text-3);

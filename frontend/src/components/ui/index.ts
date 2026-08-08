@@ -27,6 +27,8 @@ export {
 } from "./controls";
 export type { Option } from "./controls";
 
+export { Field, Input, Label } from "./Field";
+
 export { LineChart, Sparkline } from "./LineChart";
 export { Modal } from "./Modal";
 export { DataTable } from "./DataTable";

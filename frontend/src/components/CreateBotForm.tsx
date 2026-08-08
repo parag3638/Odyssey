@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createBot, listAccounts, type AccountOut } from "@/lib/api";
-import { Select } from "@/components/ui";
+import { Button, Field, Input, Select } from "@/components/ui";
 
 export function CreateBotForm({
   bare,
@@ -125,14 +125,9 @@ export function CreateBotForm({
       <div className={bare ? "" : "tcard"} style={bare ? undefined : { marginTop: 12, padding: "20px 22px" }}>
         <div className="faint">Connect an account to create a bot.</div>
         {onNeedAccount && (
-          <button
-            type="button"
-            className="btn buy"
-            style={{ marginTop: 12 }}
-            onClick={onNeedAccount}
-          >
+          <Button variant="buy" style={{ marginTop: 12 }} onClick={onNeedAccount}>
             Connect account
-          </button>
+          </Button>
         )}
       </div>
     );
@@ -141,9 +136,8 @@ export function CreateBotForm({
   return (
     <div className={bare ? "" : "tcard"} style={bare ? undefined : { marginTop: 12, padding: "20px 22px" }}>
       <form className="orderform" onSubmit={submit}>
-        <div className="field">
-          <label htmlFor="cb-name">Name</label>
-          <input
+        <Field label="Name" htmlFor="cb-name">
+          <Input
             id="cb-name"
             name="name"
             placeholder="TSLA trail"
@@ -152,9 +146,8 @@ export function CreateBotForm({
             onChange={(e) => setName(e.target.value)}
             style={{ width: 160 }}
           />
-        </div>
-        <div className="field">
-          <label htmlFor="cb-strategy">Strategy</label>
+        </Field>
+        <Field label="Strategy" htmlFor="cb-strategy">
           <Select
             id="cb-strategy"
             minWidth={150}
@@ -165,12 +158,11 @@ export function CreateBotForm({
               { value: "copy_trade", label: "Copy-trade" },
             ]}
           />
-        </div>
+        </Field>
         {strategy === "trailing_stop" ? (
           <>
-            <div className="field">
-              <label htmlFor="cb-symbol">Symbol</label>
-              <input
+            <Field label="Symbol" htmlFor="cb-symbol">
+              <Input
                 id="cb-symbol"
                 name="symbol"
                 placeholder="TSLA"
@@ -179,10 +171,9 @@ export function CreateBotForm({
                 onChange={(e) => setSymbol(e.target.value)}
                 style={{ width: 110 }}
               />
-            </div>
-            <div className="field">
-              <label htmlFor="cb-shares">Initial shares</label>
-              <input
+            </Field>
+            <Field label="Initial shares" htmlFor="cb-shares">
+              <Input
                 id="cb-shares"
                 name="initial_shares"
                 type="number"
@@ -192,10 +183,9 @@ export function CreateBotForm({
                 onChange={(e) => setInitialShares(e.target.value)}
                 style={{ width: 110 }}
               />
-            </div>
-            <div className="field">
-              <label htmlFor="cb-stop">Stop %</label>
-              <input
+            </Field>
+            <Field label="Stop %" htmlFor="cb-stop">
+              <Input
                 id="cb-stop"
                 name="stop_pct"
                 type="number"
@@ -205,10 +195,9 @@ export function CreateBotForm({
                 onChange={(e) => setStopPct(e.target.value)}
                 style={{ width: 90 }}
               />
-            </div>
-            <div className="field">
-              <label htmlFor="cb-trail">Trail %</label>
-              <input
+            </Field>
+            <Field label="Trail %" htmlFor="cb-trail">
+              <Input
                 id="cb-trail"
                 name="trail_pct"
                 type="number"
@@ -218,13 +207,12 @@ export function CreateBotForm({
                 onChange={(e) => setTrailPct(e.target.value)}
                 style={{ width: 90 }}
               />
-            </div>
+            </Field>
           </>
         ) : (
           <>
-            <div className="field">
-              <label htmlFor="cb-politician">Politician</label>
-              <input
+            <Field label="Politician" htmlFor="cb-politician">
+              <Input
                 id="cb-politician"
                 name="politician"
                 placeholder="Michael McCaul"
@@ -233,10 +221,9 @@ export function CreateBotForm({
                 onChange={(e) => setPolitician(e.target.value)}
                 style={{ width: 180 }}
               />
-            </div>
-            <div className="field">
-              <label htmlFor="cb-notional">Per-trade $</label>
-              <input
+            </Field>
+            <Field label="Per-trade $" htmlFor="cb-notional">
+              <Input
                 id="cb-notional"
                 name="per_trade_notional"
                 type="number"
@@ -246,11 +233,10 @@ export function CreateBotForm({
                 onChange={(e) => setPerTradeNotional(e.target.value)}
                 style={{ width: 110 }}
               />
-            </div>
+            </Field>
           </>
         )}
-        <div className="field">
-          <label htmlFor="cb-account">Account</label>
+        <Field label="Account" htmlFor="cb-account">
           <Select
             id="cb-account"
             minWidth={180}
@@ -262,14 +248,10 @@ export function CreateBotForm({
               label: `${a.label} · ${a.mode}`,
             }))}
           />
-        </div>
-        <button
-          type="submit"
-          className="btn buy"
-          disabled={pending || accounts.length === 0}
-        >
+        </Field>
+        <Button type="submit" variant="buy" disabled={pending || accounts.length === 0}>
           {pending ? "Creating…" : "Create bot"}
-        </button>
+        </Button>
       </form>
 
       {error && (

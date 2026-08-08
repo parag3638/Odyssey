@@ -5,7 +5,7 @@ import { Nav } from "@/components/Nav";
 import { SignalsTable } from "@/components/SignalsTable";
 import { listAccounts, syncSignals } from "@/lib/api";
 import { initials } from "@/lib/format";
-import { Button, SegmentedControl } from "@/components/ui";
+import { Button, Input, SegmentedControl } from "@/components/ui";
 import { SailIcon, SwapIcon, XIcon } from "@/components/icons";
 
 type Action = "all" | "buy" | "sell";
@@ -92,7 +92,7 @@ export default function SignalsPage() {
             </span>
           ) : (
             <span className="filter">
-              <input
+              <Input
                 placeholder="Filter politician…"
                 value={draft}
                 onChange={(e) => setDraft(e.target.value)}
