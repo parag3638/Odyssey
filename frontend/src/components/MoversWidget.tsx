@@ -43,7 +43,7 @@ export function MoversWidget({
   return (
     <div className="widget">
       <div className="wh">
-        <span className="wht">Market movers</span>
+        <span className="wht">Major market movers</span>
         <Tag muted>1D</Tag>
       </div>
       <div className="mw-lbl">

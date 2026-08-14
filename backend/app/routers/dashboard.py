@@ -94,7 +94,7 @@ def dashboard_bootstrap(response: Response, db: Session = Depends(get_db)):
         .all()
     )
     quotes = cached_value(db, "quotes_all") or {}
-    movers = cached_value(db, "movers") or {"gainers": [], "losers": []}
+    movers = cached_value(db, "major_movers") or {"gainers": [], "losers": []}
 
     stocks = [
         StockRow(

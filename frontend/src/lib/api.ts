@@ -664,6 +664,7 @@ export interface DividendPoint {
 }
 export interface MoverItem {
   symbol: string;
+  name?: string;
   price: number;
   change_pct: number;
 }

@@ -46,9 +46,16 @@ def test_dashboard_bootstrap_combines_home_data_without_upstream_calls(client):
                     fetched_at=datetime.now(timezone.utc),
                 ),
                 MarketCache(
-                    key="movers",
+                    key="major_movers",
                     data={
-                        "gainers": [{"symbol": "AAPL", "price": 123.0, "change_pct": 1.65}],
+                        "gainers": [
+                            {
+                                "symbol": "AAPL",
+                                "name": "Apple",
+                                "price": 123.0,
+                                "change_pct": 1.65,
+                            }
+                        ],
                         "losers": [],
                     },
                     fetched_at=datetime.now(timezone.utc),
@@ -68,6 +75,7 @@ def test_dashboard_bootstrap_combines_home_data_without_upstream_calls(client):
     assert body["bots"][0]["name"] == "AAPL trail"
     assert body["signals"][0]["politician"] == "Jane Doe"
     assert body["movers"]["gainers"][0]["symbol"] == "AAPL"
+    assert body["movers"]["gainers"][0]["name"] == "Apple"
     assert "Server-Timing" in response.headers
     assert response.headers["X-Odyssey-Cache"] == "miss"
     assert client.get("/dashboard/bootstrap").headers["X-Odyssey-Cache"] == "hit"

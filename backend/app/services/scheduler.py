@@ -74,22 +74,33 @@ def scrape_signals_job():
 
 
 def refresh_market_cache_job():
-    """Refresh shared quote/mover caches away from the request path."""
+    """Refresh shared quote and large-cap mover caches away from requests."""
     from app.db import get_sessionmaker
     from app.models import Ticker
     from app.services.finnhub import set_cached_many
+    from app.services.major_movers import MAJOR_UNIVERSE_SIZE, build_major_movers
     from app.services.market_data import market_data_for
 
     db = get_sessionmaker()()
     try:
         market_data = market_data_for(db)
         symbols = [symbol for (symbol,) in db.query(Ticker.symbol).all()]
+        major_tickers = [
+            {"symbol": symbol, "name": name}
+            for symbol, name in (
+                db.query(Ticker.symbol, Ticker.name)
+                .filter(Ticker.market_cap.is_not(None))
+                .order_by(Ticker.market_cap.desc(), Ticker.symbol)
+                .limit(MAJOR_UNIVERSE_SIZE)
+                .all()
+            )
+        ]
         db.rollback()
         if market_data is None or not symbols:
             return
         quotes = market_data.snapshots(symbols)
-        movers = market_data.movers()
-        set_cached_many(db, {"quotes_all": quotes, "movers": movers})
+        major_movers = build_major_movers(major_tickers, quotes)
+        set_cached_many(db, {"quotes_all": quotes, "major_movers": major_movers})
         from app.routers.dashboard import clear_dashboard_cache
         clear_dashboard_cache()
     except Exception:
