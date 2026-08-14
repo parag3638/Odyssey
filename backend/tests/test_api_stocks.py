@@ -76,6 +76,14 @@ def test_filter_by_industry(client):
     assert [x["symbol"] for x in r.json()] == ["JPM"]
 
 
+def test_stock_search_uses_catalog_and_requires_two_characters(client):
+    _patch(); _seed()
+    assert client.get("/stocks/search?q=A").json() == []
+    response = client.get("/stocks/search?q=AP&limit=8")
+    assert response.status_code == 200
+    assert [row["symbol"] for row in response.json()] == ["AAPL"]
+
+
 def test_industries(client):
     _patch(); _seed()
     inds = {x["industry"] for x in client.get("/stocks/industries").json()}

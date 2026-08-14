@@ -10,11 +10,20 @@ import { getAiSummary, type AiResponse } from "@/lib/api";
    self-hiding: renders nothing when the backend LLM is unconfigured or offline, so
    it's safe to drop into any stock/research view. Reuses the `.newssum` prose idiom
    with a sparkle header and source-link chips. */
-export function AiSummaryCard({ symbol }: { symbol: string }) {
+export function AiSummaryCard({
+  symbol,
+  value,
+  pending,
+}: {
+  symbol: string;
+  value?: AiResponse | null;
+  pending?: boolean;
+}) {
   const [data, setData] = useState<AiResponse | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (value !== undefined) return;
     let cancelled = false;
     (async () => {
       setLoading(true);
@@ -31,9 +40,12 @@ export function AiSummaryCard({ symbol }: { symbol: string }) {
     return () => {
       cancelled = true;
     };
-  }, [symbol]);
+  }, [symbol, value]);
 
-  if (loading) {
+  const shown = value !== undefined ? value : data;
+  const isLoading = value !== undefined ? Boolean(pending) && !value?.available : loading;
+
+  if (isLoading) {
     // Mirrors the loaded card's structure (header, prose block, chip row, footer)
     // at the same height, so nothing shifts when the summary arrives.
     return (
@@ -61,7 +73,7 @@ export function AiSummaryCard({ symbol }: { symbol: string }) {
     );
   }
 
-  if (!data?.available || !data.text) return null;
+  if (!shown?.available || !shown.text) return null;
 
   return (
     <div className="newssum aisum reveal">
@@ -72,10 +84,10 @@ export function AiSummaryCard({ symbol }: { symbol: string }) {
         <span className="aisum-badge">Beta</span>
       </div>
       <div className="aisum-scroll">
-        <div className="nstext">{data.text}</div>
-        <CitationChips citations={data.citations} />
+        <div className="nstext">{shown.text}</div>
+        <CitationChips citations={shown.citations} />
       </div>
-      {data.disclaimer && <div className="nsfoot">{data.disclaimer}</div>}
+      {shown.disclaimer && <div className="nsfoot">{shown.disclaimer}</div>}
     </div>
   );
 }

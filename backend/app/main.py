@@ -2,7 +2,7 @@ from contextlib import asynccontextmanager
 from time import perf_counter
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import health, accounts, orders, positions, bots, signals, activity, stocks, ai, dashboard
+from app.routers import health, accounts, orders, positions, bots, signals, activity, stocks, ai, dashboard, research
 from app.timing import current_request_metrics, reset_request_metrics, start_request_metrics
 
 
@@ -61,3 +61,4 @@ app.include_router(activity.router)
 app.include_router(stocks.router)
 app.include_router(ai.router)
 app.include_router(dashboard.router)
+app.include_router(research.router)

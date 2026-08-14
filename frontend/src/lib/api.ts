@@ -134,6 +134,33 @@ function fromSnapshot(snap: Snapshot, path: string): unknown {
       page_size: pageSize,
     } satisfies StocksBootstrap;
   }
+  if (path.startsWith("/stocks/search")) {
+    const qs = qparams(path);
+    const q = (qs.get("q") ?? "").toUpperCase();
+    const limit = Number(qs.get("limit") ?? 8);
+    if (q.length < 2) return [];
+    return snap.stocks
+      .filter((row) => row.symbol.includes(q) || row.name.toUpperCase().includes(q))
+      .slice(0, limit);
+  }
+  const researchMatch = path.match(/^\/research\/([^/]+)\/bootstrap/);
+  if (researchMatch) {
+    const symbol = researchMatch[1].toUpperCase();
+    return {
+      symbol,
+      range: qparams(path).get("range") ?? "1M",
+      stock: snap.detail[symbol] ?? null,
+      history: [],
+      signals: snap.signals.filter((signal) => signal.symbol.toUpperCase() === symbol),
+      news: [],
+      earnings: [],
+      dividends: [],
+      analysis: [],
+      ai_summary: AI_UNAVAILABLE,
+      bull_bear: BULLBEAR_UNAVAILABLE,
+      ai_pending: false,
+    } satisfies ResearchBootstrap;
+  }
   if (path.startsWith("/stocks/metrics")) {
     const syms = qparams(path).get("symbols")?.split(",").filter(Boolean) ?? [];
     const out: Record<string, StockMetrics> = {};
@@ -722,6 +749,26 @@ export interface DividendPoint {
   amount: number;
   pay_date: string;
 }
+export interface ResearchBootstrap {
+  symbol: string;
+  range: string;
+  stock: StockDetailData | null;
+  history: HistoryPoint[];
+  signals: Signal[];
+  news: NewsArticle[];
+  earnings: EarningsPoint[];
+  dividends: DividendPoint[];
+  analysis: RecommendationPoint[];
+  ai_summary: AiResponse;
+  bull_bear: BullBearOut;
+  ai_pending: boolean;
+}
+
+export interface ResearchAi {
+  summary: AiResponse;
+  bull_bear: BullBearOut;
+  pending: boolean;
+}
 export interface MoverItem {
   symbol: string;
   name?: string;
@@ -781,6 +828,16 @@ export function getStocksBootstrap(params: {
     u.set("screen_filters", JSON.stringify(params.screenFilters));
   }
   return request<StocksBootstrap>(`/stocks/bootstrap?${u.toString()}`);
+}
+export function searchStocks(q: string, limit = 8): Promise<StockRow[]> {
+  const params = new URLSearchParams({ q, limit: String(limit) });
+  return request<StockRow[]>(`/stocks/search?${params.toString()}`);
+}
+export function getResearchBootstrap(symbol: string, range = "1M"): Promise<ResearchBootstrap> {
+  return request<ResearchBootstrap>(`/research/${symbol}/bootstrap?range=${range}`);
+}
+export function getResearchAi(symbol: string): Promise<ResearchAi> {
+  return request<ResearchAi>(`/research/${symbol}/ai`);
 }
 export function getStockIndustries(): Promise<IndustryRow[]> {
   return request<IndustryRow[]>("/stocks/industries");

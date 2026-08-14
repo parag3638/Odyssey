@@ -245,6 +245,12 @@ def _stocks_catalog(
         return _catalog_cache[1], _catalog_cache[2], _catalog_cache[3]
 
 
+def stock_catalog_row(db: Session, symbol: str) -> StockFinderRow | None:
+    _, rows, _ = _stocks_catalog(db)
+    sym = symbol.upper()
+    return next((row for row in rows if row.symbol == sym), None)
+
+
 def _screen_value(row: StockFinderRow, field: str):
     values = {
         "sector": row.sector,
@@ -375,6 +381,20 @@ def stocks_bootstrap(
     if request.headers.get("if-none-match") == etag:
         return Response(status_code=304, headers=dict(response.headers))
     return payload
+
+
+@router.get("/search", response_model=list[StockRow])
+def search_stocks(q: str = "", limit: int = 8, db: Session = Depends(get_db)):
+    needle = q.strip().upper()
+    if len(needle) < 2:
+        return []
+    _, catalog, _ = _stocks_catalog(db)
+    matches = [
+        row for row in catalog
+        if needle in row.symbol.upper() or needle in row.name.upper()
+    ]
+    matches.sort(key=lambda row: (not row.symbol.startswith(needle), row.symbol))
+    return matches[:max(1, min(limit, 20))]
 
 
 @router.get("/metrics")

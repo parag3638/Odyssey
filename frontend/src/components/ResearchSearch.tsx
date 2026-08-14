@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { listStocks, type StockRow } from "@/lib/api";
+import useSWR from "swr";
+import { searchStocks } from "@/lib/api";
 import { TickerLogo } from "@/components/ui";
 import { SearchIcon, XIcon } from "@/components/icons";
 
@@ -21,24 +22,23 @@ export function ResearchSearch({
   autoFocus?: boolean;
   onSelect: (symbol: string) => void;
 }) {
-  const [all, setAll] = useState<StockRow[]>([]);
   const [q, setQ] = useState("");
+  const [debounced, setDebounced] = useState("");
   const [open, setOpen] = useState(false);
   const [pos, setPos] = useState<{ left: number; top: number; width: number } | null>(null);
   const boxRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    listStocks({ limit: 500 }).then(setAll).catch(() => setAll([]));
-  }, []);
-
-  const matches = useMemo(() => {
-    const query = q.trim().toUpperCase();
-    if (!query) return [];
-    return all
-      .filter((r) => r.symbol.includes(query) || r.name.toUpperCase().includes(query))
-      .slice(0, 8);
-  }, [all, q]);
+    const id = window.setTimeout(() => setDebounced(q.trim()), 225);
+    return () => window.clearTimeout(id);
+  }, [q]);
+  const searchQuery = useSWR(
+    debounced.length >= 2 ? ["stock-search", debounced] : null,
+    () => searchStocks(debounced, 8),
+    { dedupingInterval: 60_000, revalidateOnFocus: false, keepPreviousData: true },
+  );
+  const matches = q.trim() === debounced && debounced.length >= 2 ? searchQuery.data ?? [] : [];
 
   const showMenu = open && matches.length > 0;
 

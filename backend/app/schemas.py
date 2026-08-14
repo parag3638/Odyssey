@@ -206,6 +206,27 @@ class BullBearOut(BaseModel):
     model: str | None = None
 
 
+class ResearchBootstrapOut(BaseModel):
+    symbol: str
+    range: str = "1M"
+    stock: StockDetailOut | None = None
+    history: list[dict] = Field(default_factory=list)
+    signals: list[SignalOut] = Field(default_factory=list)
+    news: list[dict] = Field(default_factory=list)
+    earnings: list[dict] = Field(default_factory=list)
+    dividends: list[dict] = Field(default_factory=list)
+    analysis: list[dict] = Field(default_factory=list)
+    ai_summary: AiResponse = Field(default_factory=lambda: AiResponse(available=False))
+    bull_bear: BullBearOut = Field(default_factory=lambda: BullBearOut(available=False))
+    ai_pending: bool = False
+
+
+class ResearchAiOut(BaseModel):
+    summary: AiResponse = Field(default_factory=lambda: AiResponse(available=False))
+    bull_bear: BullBearOut = Field(default_factory=lambda: BullBearOut(available=False))
+    pending: bool = False
+
+
 class ConcentrationOut(BaseModel):
     """One named concentration/overlap the portfolio observer surfaced."""
     label: str

@@ -14,10 +14,10 @@ export default function StockPage() {
 
   return (
     <>
-      <Nav active="stocks" accountLabel="my-paper" accountInitials="MY" />
+      <Nav active="stocks" accountLabel="my-paper" accountInitials="MY" fetchAccount={false} />
 
       <div className="wrap roomy">
-        <Link className="back" href="/stocks">
+        <Link className="back" href="/stocks" prefetch={false}>
           <ChevronLeftIcon />
           Stocks
         </Link>
@@ -26,7 +26,7 @@ export default function StockPage() {
           <ResearchSearch onSelect={(s) => router.push(`/stocks/${s}`)} />
         </div>
 
-        <StockDetailView symbol={symbol} />
+        <StockDetailView key={symbol} symbol={symbol} />
       </div>
     </>
   );

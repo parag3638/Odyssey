@@ -14,10 +14,10 @@ export default function ResearchSymbolPage() {
 
   return (
     <>
-      <Nav active="research" accountLabel="my-paper" accountInitials="MY" />
+      <Nav active="research" accountLabel="my-paper" accountInitials="MY" fetchAccount={false} />
 
       <div className="wrap roomy">
-        <Link className="back" href="/research">
+        <Link className="back" href="/research" prefetch={false}>
           <ChevronLeftIcon />
           Research
         </Link>
@@ -26,7 +26,7 @@ export default function ResearchSymbolPage() {
           <ResearchSearch onSelect={(s) => router.push(`/research/${s}`)} />
         </div>
 
-        <StockDetailView symbol={symbol} />
+        <StockDetailView key={symbol} symbol={symbol} />
       </div>
     </>
   );

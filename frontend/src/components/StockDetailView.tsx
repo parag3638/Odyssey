@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import useSWR from "swr";
 import {
   Button,
   EmptyState,
@@ -27,21 +28,11 @@ import { buildKpis } from "@/lib/kpis";
 import { makeSeries } from "@/lib/sample";
 import {
   createBot,
-  getStock,
-  getStockAnalysis,
-  getStockDividends,
-  getStockEarnings,
   getStockHistory,
-  getStockNews,
-  getStockSignals,
+  getResearchAi,
+  getResearchBootstrap,
   listAccounts,
-  type DividendPoint,
-  type EarningsPoint,
-  type HistoryPoint,
-  type NewsArticle,
-  type RecommendationPoint,
   type Signal,
-  type StockDetailData,
 } from "@/lib/api";
 
 const RANGES = ["1D", "1W", "1M", "3M", "YTD", "1Y", "ALL"];
@@ -52,62 +43,52 @@ const RANGES = ["1D", "1W", "1M", "3M", "YTD", "1Y", "ALL"];
 export function StockDetailView({ symbol }: { symbol: string }) {
   const router = useRouter();
 
-  const [stock, setStock] = useState<StockDetailData | null>(null);
-  const [history, setHistory] = useState<HistoryPoint[]>([]);
   const [range, setRange] = useState("1M");
   const [tab, setTab] = useState("news");
-  const [news, setNews] = useState<NewsArticle[]>([]);
-  const [newsLoading, setNewsLoading] = useState(true);
-  const [earnings, setEarnings] = useState<EarningsPoint[]>([]);
-  const [analysis, setAnalysis] = useState<RecommendationPoint[]>([]);
-  const [dividends, setDividends] = useState<DividendPoint[]>([]);
-  const [signals, setSignals] = useState<Signal[]>([]);
   const [accountId, setAccountId] = useState<number | null>(null);
-  const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
+  const [pollAi, setPollAi] = useState(false);
+
+  const bundleQuery = useSWR(
+    symbol ? ["research-bootstrap", symbol] : null,
+    () => getResearchBootstrap(symbol, "1M"),
+    { dedupingInterval: 60_000, revalidateOnFocus: false, keepPreviousData: true },
+  );
+  const bundle = bundleQuery.data;
 
   useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      setTab("news");
-      setLoading(true);
-      try {
-        const s = await getStock(symbol);
-        if (!cancelled) setStock(s);
-      } catch {
-        /* ignore */
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    })();
-    (async () => {
-      setNewsLoading(true);
-      try {
-        const d = await getStockNews(symbol);
-        if (!cancelled) setNews(d);
-      } catch {
-        /* ignore */
-      } finally {
-        if (!cancelled) setNewsLoading(false);
-      }
-    })();
-    getStockEarnings(symbol).then((d) => !cancelled && setEarnings(d)).catch(() => {});
-    getStockAnalysis(symbol).then((d) => !cancelled && setAnalysis(d)).catch(() => {});
-    getStockDividends(symbol).then((d) => !cancelled && setDividends(d)).catch(() => {});
-    getStockSignals(symbol).then((d) => !cancelled && setSignals(d)).catch(() => {});
-    listAccounts().then((a) => !cancelled && a[0] && setAccountId(Number(a[0].id))).catch(() => {});
-    return () => {
-      cancelled = true;
-    };
-  }, [symbol]);
+    if (!bundle?.ai_pending) return;
+    const id = window.setTimeout(() => setPollAi(true), 2500);
+    return () => window.clearTimeout(id);
+  }, [bundle?.ai_pending, symbol]);
 
-  useEffect(() => {
-    let cancelled = false;
-    getStockHistory(symbol, range).then((h) => !cancelled && setHistory(h)).catch(() => {});
-    return () => {
-      cancelled = true;
-    };
-  }, [symbol, range]);
+  const aiQuery = useSWR(
+    pollAi ? ["research-ai", symbol] : null,
+    () => getResearchAi(symbol),
+    {
+      refreshInterval: (latest) => latest?.pending ? 3000 : 0,
+      revalidateOnFocus: false,
+    },
+  );
+  const historyQuery = useSWR(
+    range !== "1M" ? ["stock-history", symbol, range] : null,
+    () => getStockHistory(symbol, range),
+    { dedupingInterval: 5 * 60_000, revalidateOnFocus: false, keepPreviousData: true },
+  );
+
+  const stock = bundle?.stock ?? null;
+  const history = useMemo(
+    () => range === "1M" ? bundle?.history ?? [] : historyQuery.data ?? [],
+    [range, bundle?.history, historyQuery.data],
+  );
+  const signals = bundle?.signals ?? [];
+  const news = bundle?.news ?? [];
+  const earnings = bundle?.earnings ?? [];
+  const analysis = bundle?.analysis ?? [];
+  const dividends = bundle?.dividends ?? [];
+  const aiSummary = aiQuery.data?.summary ?? bundle?.ai_summary;
+  const bullBear = aiQuery.data?.bull_bear ?? bundle?.bull_bear;
+  const aiPending = aiQuery.data?.pending ?? bundle?.ai_pending ?? false;
 
   const price = stock?.price ?? null;
   const change = stock?.change ?? null;
@@ -120,13 +101,25 @@ export function StockDetailView({ symbol }: { symbol: string }) {
   }, [history, price, up, symbol]);
   const realChart = history.length > 1;
 
+  const resolveAccountId = useCallback(async () => {
+    if (accountId) return accountId;
+    const accounts = await listAccounts();
+    const id = accounts[0] ? Number(accounts[0].id) : null;
+    if (id) setAccountId(id);
+    return id;
+  }, [accountId]);
+
   const createTrailingBot = useCallback(async () => {
-    if (!accountId) return;
     setBusy(true);
     try {
+      const id = await resolveAccountId();
+      if (!id) {
+        setBusy(false);
+        return;
+      }
       const bot = await createBot({
         name: `${symbol} trail`,
-        account_id: accountId,
+        account_id: id,
         strategy_type: "trailing_stop",
         symbol,
         initial_shares: 10,
@@ -137,16 +130,20 @@ export function StockDetailView({ symbol }: { symbol: string }) {
     } catch {
       setBusy(false);
     }
-  }, [accountId, symbol, router]);
+  }, [resolveAccountId, symbol, router]);
 
   const copyPolitician = useCallback(
     async (politician: string) => {
-      if (!accountId) return;
       setBusy(true);
       try {
+        const id = await resolveAccountId();
+        if (!id) {
+          setBusy(false);
+          return;
+        }
         const bot = await createBot({
           name: `copy ${politician}`,
-          account_id: accountId,
+          account_id: id,
           strategy_type: "copy_trade",
           politician,
         });
@@ -155,12 +152,12 @@ export function StockDetailView({ symbol }: { symbol: string }) {
         setBusy(false);
       }
     },
-    [accountId, router],
+    [resolveAccountId, router],
   );
 
   const { whole, cents } = splitMoney(price ?? 0);
 
-  if (loading && !stock) {
+  if (bundleQuery.isLoading && !stock) {
     return (
       <div className="tcard" style={{ padding: "22px" }}>
         <Skeleton w={220} h={20} />
@@ -181,7 +178,7 @@ export function StockDetailView({ symbol }: { symbol: string }) {
           </div>
         </div>
         <span className="sp" />
-        <Button variant="ghost" sm onClick={createTrailingBot} disabled={busy || !accountId}>
+        <Button variant="ghost" sm onClick={createTrailingBot} disabled={busy}>
           <SparklesIcon />
           Create bot
         </Button>
@@ -235,19 +232,18 @@ export function StockDetailView({ symbol }: { symbol: string }) {
             {stock && <KpiStrip items={buildKpis(stock)} />}
           </div>
 
-          <BullBearPanel symbol={symbol} />
+          <BullBearPanel symbol={symbol} value={bullBear} pending={aiPending} />
 
           <CongressionalActivity
             signals={signals}
             busy={busy}
-            accountId={accountId}
             onCopy={copyPolitician}
             symbol={symbol}
           />
         </div>
 
         <div>
-          <AiSummaryCard symbol={symbol} />
+          <AiSummaryCard symbol={symbol} value={aiSummary} pending={aiPending} />
           <div className="rtabs">
             <Tabs
               options={[
@@ -261,7 +257,7 @@ export function StockDetailView({ symbol }: { symbol: string }) {
             />
           </div>
           <div className="newssum">
-            {tab === "news" && <NewsTab items={news} loading={newsLoading} />}
+            {tab === "news" && <NewsTab items={news} loading={bundleQuery.isLoading} />}
             {tab === "earnings" && <EarningsTab items={earnings} />}
             {tab === "dividends" && <DividendsTab items={dividends} />}
             {tab === "analysis" && <AnalysisTab items={analysis} />}
@@ -277,13 +273,11 @@ export function StockDetailView({ symbol }: { symbol: string }) {
 function CongressionalActivity({
   signals,
   busy,
-  accountId,
   onCopy,
   symbol,
 }: {
   signals: Signal[];
   busy: boolean;
-  accountId: number | null;
   onCopy: (politician: string) => void;
   symbol: string;
 }) {
@@ -335,7 +329,7 @@ function CongressionalActivity({
                     <td className="tnum">{s.amount_range || "—"}</td>
                     <td className="tnum">{s.tx_date}</td>
                     <td className="l">
-                      <Button sm variant="ghost" disabled={busy || !accountId} onClick={() => onCopy(s.politician)}>
+                      <Button sm variant="ghost" disabled={busy} onClick={() => onCopy(s.politician)}>
                         Copy {s.politician.split(" ").slice(-1)[0]}
                       </Button>
                     </td>

@@ -160,6 +160,13 @@ def refresh_earnings_calendar_job():
     refresh_earnings_calendar()
 
 
+def refresh_recent_research_job():
+    """Keep recently viewed research bundles warm within provider rate limits."""
+    from app.services.research import recent_research_symbols, refresh_research_symbol
+    for symbol in recent_research_symbols(limit=4):
+        refresh_research_symbol(symbol, "1M")
+
+
 def start_scheduler():
     global _scheduler
     if _scheduler is not None:
@@ -190,6 +197,13 @@ def start_scheduler():
         seconds=12 * 3600,
         id="refresh_earnings_calendar",
         next_run_time=datetime.now(timezone.utc),
+        **common,
+    )
+    _scheduler.add_job(
+        refresh_recent_research_job,
+        "interval",
+        seconds=15 * 60,
+        id="refresh_recent_research",
         **common,
     )
     _scheduler.start()

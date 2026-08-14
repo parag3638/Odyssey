@@ -12,11 +12,20 @@ const SKEL_LINES = ["94%", "87%", "70%"];
 
 /* Bull-vs-bear synthesis panel. Self-fetching and self-hiding — renders nothing
    when the LLM is unavailable or produced no points. Sits below the KPI strip. */
-export function BullBearPanel({ symbol }: { symbol: string }) {
+export function BullBearPanel({
+  symbol,
+  value,
+  pending,
+}: {
+  symbol: string;
+  value?: BullBearOut | null;
+  pending?: boolean;
+}) {
   const [data, setData] = useState<BullBearOut | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (value !== undefined) return;
     let cancelled = false;
     (async () => {
       setLoading(true);
@@ -33,9 +42,12 @@ export function BullBearPanel({ symbol }: { symbol: string }) {
     return () => {
       cancelled = true;
     };
-  }, [symbol]);
+  }, [symbol, value]);
 
-  if (loading) {
+  const shown = value !== undefined ? value : data;
+  const isLoading = value !== undefined ? Boolean(pending) && !value?.available : loading;
+
+  if (isLoading) {
     // Mirrors the loaded panel's structure (head, two tagged columns, crux
     // row) at roughly the same height, so nothing shifts when it arrives.
     return (
@@ -66,7 +78,7 @@ export function BullBearPanel({ symbol }: { symbol: string }) {
     );
   }
 
-  if (!data?.available || (data.bull.length === 0 && data.bear.length === 0)) return null;
+  if (!shown?.available || (shown.bull.length === 0 && shown.bear.length === 0)) return null;
 
   return (
     <div className="bbpanel reveal">
@@ -75,7 +87,7 @@ export function BullBearPanel({ symbol }: { symbol: string }) {
         <div className="bbcol">
           <span className="bbtag g">Bull</span>
           <ul>
-            {data.bull.map((p, i) => (
+            {shown.bull.map((p, i) => (
               <li key={i}>{clean(p)}</li>
             ))}
           </ul>
@@ -83,19 +95,19 @@ export function BullBearPanel({ symbol }: { symbol: string }) {
         <div className="bbcol">
           <span className="bbtag r">Bear</span>
           <ul>
-            {data.bear.map((p, i) => (
+            {shown.bear.map((p, i) => (
               <li key={i}>{clean(p)}</li>
             ))}
           </ul>
         </div>
       </div>
-      {data.crux && (
+      {shown.crux && (
         <div className="bbcrux">
           <span className="k">Crux</span>
-          {clean(data.crux)}
+          {clean(shown.crux)}
         </div>
       )}
-      <CitationChips citations={data.citations} />
+      <CitationChips citations={shown.citations} />
     </div>
   );
 }
