@@ -68,7 +68,7 @@ def _seed_research():
 
 def test_research_bootstrap_combines_cached_page_data(client, monkeypatch):
     _seed_research()
-    monkeypatch.setattr(research_router, "refresh_research_symbol", lambda *args: None)
+    monkeypatch.setattr(research_router, "schedule_research_refresh", lambda *args: None)
 
     response = client.get("/research/NVDA/bootstrap?range=1M")
 

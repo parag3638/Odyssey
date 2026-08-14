@@ -103,6 +103,9 @@ def test_bull_bear_no_key(client):
 def test_congress_context(client):
     _seed()
     _patch()
+    from app.routers.ai import _generate_congress_context
+
+    _generate_congress_context("AAPL")
     d = client.get("/ai/signals/AAPL/context").json()
     assert d["available"] is True
     assert "lawmakers" in d["text"] or "bought" in d["text"]

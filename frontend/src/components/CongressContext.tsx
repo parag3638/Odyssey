@@ -14,11 +14,17 @@ export function CongressContext({ symbol }: { symbol: string }) {
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      try {
-        const d = await getCongressContext(symbol);
-        if (!cancelled) setData(d);
-      } catch {
-        if (!cancelled) setData(null);
+      for (let attempt = 0; attempt < 7 && !cancelled; attempt += 1) {
+        try {
+          const d = await getCongressContext(symbol);
+          if (cancelled) return;
+          setData(d);
+          if (d.available) return;
+        } catch {
+          if (!cancelled) setData(null);
+          return;
+        }
+        await new Promise((resolve) => window.setTimeout(resolve, 2500));
       }
     })();
     return () => {

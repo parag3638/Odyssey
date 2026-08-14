@@ -9,7 +9,6 @@ from app.services import ai as ai_service
 from app.services.finnhub import get_finnhub, set_cached_many
 from app.services.market_data import market_data_for
 
-
 SOURCE_TTLS = {
     "news": 1800,
     "earnings": 12 * 3600,
@@ -22,7 +21,9 @@ AI_TTL_SEC = 6 * 3600
 
 _state_lock = Lock()
 _refreshing: set[str] = set()
+_scheduled: set[str] = set()
 _recent: dict[str, float] = {}
+_refresh_executor = ThreadPoolExecutor(max_workers=2, thread_name_prefix="research-refresh")
 
 COMBINED_AI_SCHEMA = {
     "type": "object",
@@ -65,7 +66,30 @@ def recent_research_symbols(limit: int = 4) -> list[str]:
 def is_research_refreshing(symbol: str) -> bool:
     with _state_lock:
         prefix = f"{symbol.upper()}:"
-        return any(token.startswith(prefix) for token in _refreshing)
+        return any(
+            token.startswith(prefix) for token in (_refreshing | _scheduled)
+        )
+
+
+def schedule_research_refresh(symbol: str, range_name: str = "1M") -> bool:
+    """Queue a bounded refresh without extending the originating HTTP request."""
+    symbol = symbol.upper()
+    range_name = range_name.upper()
+    token = f"{symbol}:{range_name}"
+    with _state_lock:
+        if token in _refreshing or token in _scheduled:
+            return False
+        _scheduled.add(token)
+
+    def _run() -> None:
+        try:
+            refresh_research_symbol(symbol, range_name)
+        finally:
+            with _state_lock:
+                _scheduled.discard(token)
+
+    _refresh_executor.submit(_run)
+    return True
 
 
 def _age_seconds(value: datetime | None) -> float:

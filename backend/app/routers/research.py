@@ -3,7 +3,7 @@ import json
 from threading import Lock
 from time import monotonic, time_ns
 
-from fastapi import APIRouter, BackgroundTasks, Depends, Request, Response
+from fastapi import APIRouter, Depends, Request, Response
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
@@ -21,9 +21,8 @@ from app.schemas import (
 from app.services.research import (
     is_research_refreshing,
     mark_research_view,
-    refresh_research_symbol,
+    schedule_research_refresh,
 )
-
 
 router = APIRouter(prefix="/research")
 _CACHE_TTL_SEC = 60
@@ -145,7 +144,6 @@ def research_bootstrap(
     symbol: str,
     request: Request,
     response: Response,
-    background_tasks: BackgroundTasks,
     range: str = "1M",
     db: Session = Depends(get_db),
 ):
@@ -153,7 +151,7 @@ def research_bootstrap(
     range_name = (range or "1M").upper()
     mark_research_view(sym)
     version, payload = _bundle(db, sym, range_name)
-    background_tasks.add_task(refresh_research_symbol, sym, range_name)
+    schedule_research_refresh(sym, range_name)
     fingerprint = json.dumps([version, sym, range_name], separators=(",", ":"))
     etag = f'"{hashlib.sha1(fingerprint.encode()).hexdigest()}"'
     response.headers["ETag"] = etag
@@ -166,7 +164,6 @@ def research_bootstrap(
 @router.get("/{symbol}/ai", response_model=ResearchAiOut)
 def research_ai(
     symbol: str,
-    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
 ):
     sym = symbol.upper()
@@ -176,7 +173,7 @@ def research_ai(
         or not (payload.ai_summary.available and payload.bull_bear.available)
     )
     if pending:
-        background_tasks.add_task(refresh_research_symbol, sym, "1M")
+        schedule_research_refresh(sym, "1M")
     return ResearchAiOut(
         summary=payload.ai_summary,
         bull_bear=payload.bull_bear,

@@ -5,6 +5,8 @@ AI affordance the same way the Analyst/Earnings tabs do without a Finnhub key.
 """
 import hashlib
 import json
+from concurrent.futures import ThreadPoolExecutor
+from threading import Lock
 
 from fastapi import APIRouter, Depends
 from fastapi.responses import StreamingResponse
@@ -12,7 +14,7 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.config import get_settings
-from app.db import get_db
+from app.db import get_db, get_sessionmaker
 from app.models import ActivityLog, BrokerageAccount, Signal, Ticker
 from app.schemas import (
     AiResponse,
@@ -27,12 +29,15 @@ from app.schemas import (
     ScreenerParseOut,
 )
 from app.services import ai as ai_service
-from app.services.finnhub import cached
+from app.services.finnhub import cached, cached_value, set_cached_many
 from app.services.finnhub import get_finnhub as _get_finnhub
 from app.services.llm import get_llm as _get_llm
 from app.services.market_data import market_data_for
 
 router = APIRouter(prefix="/ai")
+_context_executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="congress-context")
+_context_lock = Lock()
+_context_pending: set[str] = set()
 
 
 # Overridable seams for tests (mirror stocks_router.get_market_data / get_finnhub).
@@ -64,6 +69,70 @@ def get_broker(db: Session):
 
 def _unavailable() -> AiResponse:
     return AiResponse(available=False, text=None)
+
+
+def _generate_congress_context(symbol: str) -> None:
+    db = get_sessionmaker()()
+    try:
+        if cached_value(db, f"ai_congress:{symbol}", 12 * 3600) is not None:
+            return
+        rows = (
+            db.query(Signal)
+            .filter(func.upper(Signal.symbol) == symbol)
+            .order_by(Signal.id.desc())
+            .limit(30)
+            .all()
+        )
+        if not rows:
+            return
+        signals = [
+            {
+                "politician": row.politician,
+                "tx_type": row.tx_type,
+                "amount_range": row.amount_range,
+                "tx_date": row.tx_date,
+                "source_url": row.source_url,
+            }
+            for row in rows
+        ]
+        db.rollback()
+        bundle = ai_service.build_congress_bundle(symbol, signals)
+        llm = get_llm()
+        if not llm.enabled:
+            return
+        result = llm.complete_json(
+            system=ai_service.CONGRESS_SYSTEM,
+            user=ai_service.render_congress_prompt(symbol, bundle),
+            schema=ai_service.SUMMARY_SCHEMA,
+        )
+        if not result or not result.get("text"):
+            return
+        citations = ai_service.validate_citations(result.get("citation_ids") or [], bundle)
+        value = AiResponse(
+            available=True,
+            text=result["text"],
+            citations=[Citation(**citation) for citation in citations],
+            model=llm.model,
+        ).model_dump()
+        set_cached_many(db, {f"ai_congress:{symbol}": value})
+    finally:
+        db.close()
+
+
+def _schedule_congress_context(symbol: str) -> None:
+    with _context_lock:
+        if symbol in _context_pending:
+            return
+        _context_pending.add(symbol)
+
+    def _run() -> None:
+        try:
+            _generate_congress_context(symbol)
+        finally:
+            with _context_lock:
+                _context_pending.discard(symbol)
+
+    _context_executor.submit(_run)
 
 
 @router.get("/stocks/{symbol}/summary", response_model=AiResponse)
@@ -162,38 +231,19 @@ def congress_context(symbol: str, db: Session = Depends(get_db)) -> AiResponse:
     if not llm.enabled:
         return _unavailable()
     sym = symbol.upper()
-    rows = (
-        db.query(Signal)
+    data = cached_value(db, f"ai_congress:{sym}", 12 * 3600)
+    if isinstance(data, dict):
+        return AiResponse(**data)
+    has_signal = (
+        db.query(Signal.id)
         .filter(func.upper(Signal.symbol) == sym)
-        .order_by(Signal.id.desc())
-        .limit(30)
-        .all()
+        .first()
+        is not None
     )
-    if not rows:
+    if not has_signal:
         return _unavailable()
-    signals = [
-        {"politician": s.politician, "tx_type": s.tx_type, "amount_range": s.amount_range,
-         "tx_date": s.tx_date, "source_url": s.source_url}
-        for s in rows
-    ]
-    bundle = ai_service.build_congress_bundle(sym, signals)
-
-    def _generate():
-        result = llm.complete_json(
-            system=ai_service.CONGRESS_SYSTEM,
-            user=ai_service.render_congress_prompt(sym, bundle),
-            schema=ai_service.SUMMARY_SCHEMA,
-        )
-        if not result or not result.get("text"):
-            return None
-        cites = ai_service.validate_citations(result.get("citation_ids") or [], bundle)
-        return AiResponse(
-            available=True, text=result["text"],
-            citations=[Citation(**c) for c in cites], model=llm.model,
-        ).model_dump()
-
-    data = cached(db, f"ai_congress:{sym}", 12 * 3600, _generate)
-    return AiResponse(**data) if isinstance(data, dict) else _unavailable()
+    _schedule_congress_context(sym)
+    return _unavailable()
 
 
 @router.get("/portfolio/health", response_model=PortfolioHealthOut)
