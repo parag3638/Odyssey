@@ -1,10 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { Nav } from "@/components/Nav";
+import { useRef, useState } from "react";
 import { SignalsTable } from "@/components/SignalsTable";
-import { listAccounts, syncSignals } from "@/lib/api";
-import { initials } from "@/lib/format";
+import { syncSignals } from "@/lib/api";
 import { useFillRows } from "@/lib/useFillRows";
 import { Button, Input, SegmentedControl } from "@/components/ui";
 import { SailIcon, SwapIcon, XIcon } from "@/components/icons";
@@ -14,28 +12,12 @@ type Action = "all" | "buy" | "sell";
 export default function SignalsPage() {
   const tableRef = useRef<HTMLDivElement | null>(null);
   const pageSize = useFillRows(tableRef);
-  const [accountLabel, setAccountLabel] = useState("Trading Claude");
   const [politician, setPolitician] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
   const [action, setAction] = useState<Action>("all");
   const [reloadKey, setReloadKey] = useState(0);
   const [syncing, setSyncing] = useState(false);
   const [syncMsg, setSyncMsg] = useState("");
-
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const accounts = await listAccounts();
-        if (!cancelled && accounts[0]) setAccountLabel(accounts[0].label);
-      } catch {
-        /* keep default */
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
 
   async function sync() {
     setSyncing(true);
@@ -53,8 +35,6 @@ export default function SignalsPage() {
 
   return (
     <>
-      <Nav active="signals" accountLabel={accountLabel} accountInitials={initials(accountLabel)} />
-
       <div className="wrap roomy">
         <div className="shead reveal" style={{ ["--i" as string]: 0 }}>
           <span className="flame">

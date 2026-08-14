@@ -1,26 +1,16 @@
 "use client";
 
-import { Nav } from "@/components/Nav";
 import { HoldingsTable } from "@/components/HoldingsTable";
 import { PortfolioHealth } from "@/components/PortfolioHealth";
 import { Card, Skeleton, Stat, StatGrid } from "@/components/ui";
 import { usePortfolio } from "@/lib/usePortfolio";
-import { initials, money, signClass, signedMoney } from "@/lib/format";
+import { money, signClass, signedMoney } from "@/lib/format";
 import { SailIcon } from "@/components/icons";
 
 export default function PositionsPage() {
   const pf = usePortfolio();
-  const label = pf.account?.label ?? "Trading Claude";
-
   return (
     <>
-      <Nav
-        active="positions"
-        accountLabel={label}
-        accountInitials={initials(label)}
-        fetchAccount={false}
-      />
-
       <div className="wrap roomy">
         <div className="shead reveal" style={{ ["--i" as string]: 0 }}>
           <span className="flame">

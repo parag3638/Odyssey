@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { Nav } from "@/components/Nav";
 import { BotStatus } from "@/components/BotStatus";
 import { Badge, KpiStrip, Ranges, TickerLogo } from "@/components/ui";
 import { LineChart } from "@/components/ui/LineChart";
@@ -85,8 +84,6 @@ export default function BotDetailPage() {
 
   return (
     <>
-      <Nav accountLabel="Trading Claude" accountInitials="TC" />
-
       <div className="wrap wide">
         <Link className="back" href="/">
           <ChevronLeftIcon />

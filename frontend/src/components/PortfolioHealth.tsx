@@ -41,9 +41,8 @@ export function PortfolioHealth({
     };
   }, [healthKey, initialData, pending]);
 
-  const visible = polled?.key === healthKey && polled.value.available
-    ? polled.value
-    : initialData;
+  const polledValue = polled && polled.key === healthKey ? polled.value : null;
+  const visible = polledValue?.available ? polledValue : initialData;
   if (!visible?.available || !visible.text) return null;
 
   return (

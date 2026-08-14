@@ -2,7 +2,6 @@
 
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { Nav } from "@/components/Nav";
 import { ResearchSearch } from "@/components/ResearchSearch";
 import { StockDetailView } from "@/components/StockDetailView";
 import { ChevronLeftIcon } from "@/components/icons";
@@ -14,8 +13,6 @@ export default function StockPage() {
 
   return (
     <>
-      <Nav active="stocks" accountLabel="my-paper" accountInitials="MY" fetchAccount={false} />
-
       <div className="wrap roomy">
         <Link className="back" href="/stocks" prefetch={false}>
           <ChevronLeftIcon />

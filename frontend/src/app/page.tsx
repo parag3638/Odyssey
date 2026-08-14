@@ -5,8 +5,6 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import useSWR from "swr";
 import { getDashboardBootstrap } from "@/lib/api";
-import { initials } from "@/lib/format";
-import { Nav } from "@/components/Nav";
 import { ActiveBots } from "@/components/ActiveBots";
 import { StocksTable } from "@/components/StocksTable";
 import { MoversWidget } from "@/components/MoversWidget";
@@ -75,17 +73,8 @@ export default function HomePage() {
   const hero = useStockHero(selectedSymbol, range, selectedRow?.price ?? null, isUp);
 
   const account = dashboard.data?.account ?? null;
-  const accountLabel = account?.label ?? "there";
-
   return (
     <>
-      <Nav
-        active="overview"
-        accountLabel={accountLabel}
-        accountInitials={initials(accountLabel)}
-        fetchAccount={false}
-      />
-
       <div className="wrap roomy">
         <div className="greet reveal" style={{ ["--i" as string]: 0 }}>
           {greet}, Captain

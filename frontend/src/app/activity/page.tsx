@@ -1,10 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Nav } from "@/components/Nav";
 import { Card } from "@/components/ui";
 import { listActivity, type Activity } from "@/lib/api";
-import { initials } from "@/lib/format";
 import {
   CheckIcon,
   AlertCircleIcon,
@@ -146,8 +144,6 @@ export default function ActivityPage() {
 
   return (
     <>
-      <Nav active="activity" accountLabel="Trading Claude" accountInitials={initials("Trading Claude")} />
-
       <div className="wrap roomy">
         <div className="shead reveal" style={{ ["--i" as string]: 0 }}>
           <span className="ttl">Activity</span>

@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import useSWR from "swr";
-import { Nav } from "@/components/Nav";
 import {
   StockFinderTable,
   type StockFinderSort,
@@ -97,13 +96,6 @@ export default function StocksPage() {
 
   return (
     <>
-      <Nav
-        active="stocks"
-        accountLabel="my-paper"
-        accountInitials="MY"
-        fetchAccount={false}
-      />
-
       <div className="wrap roomy">
         <div className="shead reveal" style={{ ["--i" as string]: 0 }}>
           <span className="flame">
