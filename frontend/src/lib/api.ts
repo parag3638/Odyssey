@@ -92,6 +92,25 @@ function fromSnapshot(snap: Snapshot, path: string): unknown {
     } satisfies DashboardBootstrap;
   }
 
+  if (path === "/positions/bootstrap") {
+    const accounts = (snap.exact["/accounts"] as AccountOut[] | undefined) ?? [];
+    return {
+      account: accounts[0] ?? null,
+      positions: [],
+      quotes: [],
+      cash: null,
+      portfolio_health: {
+        available: false,
+        text: null,
+        concentrations: [],
+        disclaimer: "",
+        model: null,
+      },
+      health_key: null,
+      health_pending: false,
+    } satisfies PositionsBootstrap;
+  }
+
   if (path.startsWith("/activity")) {
     const limit = Number(qparams(path).get("limit") ?? 50);
     return snap.activity.slice(0, limit);
@@ -536,12 +555,27 @@ export interface PortfolioOverview {
   cash: number | null;
 }
 
+export interface PositionsBootstrap extends Omit<PortfolioOverview, "account"> {
+  account: AccountOut | null;
+  portfolio_health: PortfolioHealthOut;
+  health_key: string | null;
+  health_pending: boolean;
+}
+
 export function getAccountSummary(accountId: string): Promise<AccountSummary> {
   return request<AccountSummary>(`/positions/${accountId}/summary`);
 }
 
 export function getPortfolioOverview(accountId: string): Promise<PortfolioOverview> {
   return request<PortfolioOverview>(`/positions/${accountId}/overview`);
+}
+
+export function getPositionsBootstrap(): Promise<PositionsBootstrap> {
+  return request<PositionsBootstrap>("/positions/bootstrap");
+}
+
+export function getPositionsHealth(key: string): Promise<PortfolioHealthOut> {
+  return request<PortfolioHealthOut>(`/positions/health?key=${encodeURIComponent(key)}`);
 }
 
 export function placeOrder(

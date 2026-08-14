@@ -1,5 +1,5 @@
-from datetime import datetime, timezone
 from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime, timezone
 
 from app.models import Bot, MarketCache, Signal, Ticker
 
@@ -95,6 +95,26 @@ def test_portfolio_overview_combines_positions_quotes_and_cash(client):
     assert body["positions"][0]["symbol"] == "AAPL"
     assert body["quotes"][0]["price"] == 100.0
     assert body["cash"] == 49_800.0
+
+
+def test_positions_bootstrap_removes_account_waterfall(client):
+    account = _account(client)
+    client.post(
+        "/orders",
+        json={"account_id": account["id"], "symbol": "AAPL", "qty": 2, "side": "buy"},
+    )
+
+    response = client.get("/positions/bootstrap")
+
+    assert response.status_code == 200, response.text
+    body = response.json()
+    assert body["account"]["id"] == account["id"]
+    assert body["positions"][0]["symbol"] == "AAPL"
+    assert body["quotes"][0]["price"] == 100.0
+    assert body["cash"] == 49_800.0
+    assert body["portfolio_health"]["available"] is False
+    assert response.headers["X-Odyssey-Cache"] == "miss"
+    assert client.get("/positions/bootstrap").headers["X-Odyssey-Cache"] == "hit"
 
 
 def test_dashboard_bootstrap_handles_twenty_concurrent_requests(client):

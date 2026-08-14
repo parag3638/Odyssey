@@ -1,14 +1,15 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from app.db import get_db
+
+from app.brokers.alpaca import AlpacaBroker
+from app.brokers.base import BrokerError, BuyOrder, SellOrder
 from app.config import get_settings
 from app.crypto import decrypt_secret
+from app.db import get_db
 from app.models import BrokerageAccount
-from app.brokers.base import BuyOrder, SellOrder, BrokerError
-from app.brokers.alpaca import AlpacaBroker
 from app.risk import RiskRejection
-from app.services.orders import place_order
 from app.schemas import OrderCreate, OrderOut
+from app.services.orders import place_order
 
 router = APIRouter(prefix="/orders")
 
@@ -36,5 +37,8 @@ def create_order(body: OrderCreate, db: Session = Depends(get_db)):
         raise HTTPException(422, f"risk rejection: {e}")
     except BrokerError as e:
         raise HTTPException(502, f"broker error: {e}")
+    from app.routers.positions import clear_positions_cache
+
+    clear_positions_cache(account.id)
     return OrderOut(id=order.id, symbol=order.symbol, side=order.side,
                     qty=float(order.qty), status=order.status, reason=order.reason)

@@ -2,39 +2,59 @@
 
 import { useEffect, useState } from "react";
 import { SparklesIcon } from "@/components/icons";
-import { getPortfolioHealth, type PortfolioHealthOut } from "@/lib/api";
+import { getPositionsHealth, type PortfolioHealthOut } from "@/lib/api";
 
 /* Portfolio health — concentration/overlap observer. Advisory information only;
    self-hides when there's no key, no connected account, or no holdings. */
-export function PortfolioHealth({ refreshKey }: { refreshKey?: string }) {
-  const [data, setData] = useState<PortfolioHealthOut | null>(null);
+export function PortfolioHealth({
+  initialData,
+  healthKey,
+  pending,
+}: {
+  initialData?: PortfolioHealthOut | null;
+  healthKey?: string | null;
+  pending?: boolean;
+}) {
+  const [polled, setPolled] = useState<{
+    key: string;
+    value: PortfolioHealthOut;
+  } | null>(null);
 
   useEffect(() => {
+    if (!pending || !healthKey || initialData?.available) return;
     let cancelled = false;
     (async () => {
-      try {
-        const d = await getPortfolioHealth();
-        if (!cancelled) setData(d);
-      } catch {
-        if (!cancelled) setData(null);
+      for (let attempt = 0; attempt < 7 && !cancelled; attempt += 1) {
+        await new Promise((resolve) => window.setTimeout(resolve, 2500));
+        try {
+          const next = await getPositionsHealth(healthKey);
+          if (cancelled) return;
+          setPolled({ key: healthKey, value: next });
+          if (next.available) return;
+        } catch {
+          return;
+        }
       }
     })();
     return () => {
       cancelled = true;
     };
-  }, [refreshKey]);
+  }, [healthKey, initialData, pending]);
 
-  if (!data?.available || !data.text) return null;
+  const visible = polled?.key === healthKey && polled.value.available
+    ? polled.value
+    : initialData;
+  if (!visible?.available || !visible.text) return null;
 
   return (
     <div className="pfhealth">
       <div className="pfh-head">
         <SparklesIcon /> Portfolio health
       </div>
-      <div className="pfh-text">{data.text}</div>
-      {data.concentrations.length > 0 && (
+      <div className="pfh-text">{visible.text}</div>
+      {visible.concentrations.length > 0 && (
         <div className="pfh-bars">
-          {data.concentrations.map((c) => (
+          {visible.concentrations.map((c) => (
             <div className="pfh-row" key={c.label}>
               <span className="k">{c.label}</span>
               <span className="allocbar">
@@ -46,7 +66,7 @@ export function PortfolioHealth({ refreshKey }: { refreshKey?: string }) {
           ))}
         </div>
       )}
-      {data.disclaimer && <div className="nsfoot">{data.disclaimer}</div>}
+      {visible.disclaimer && <div className="nsfoot">{visible.disclaimer}</div>}
     </div>
   );
 }

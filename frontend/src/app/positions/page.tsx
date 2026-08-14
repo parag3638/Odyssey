@@ -58,7 +58,11 @@ export default function PositionsPage() {
 
         {pf.hasData && (
           <div className="reveal" style={{ ["--i" as string]: 2 }}>
-            <PortfolioHealth refreshKey={pf.holdings.map((h) => h.symbol).join(",")} />
+            <PortfolioHealth
+              initialData={pf.portfolioHealth}
+              healthKey={pf.healthKey}
+              pending={pf.healthPending}
+            />
           </div>
         )}
 

@@ -1,8 +1,9 @@
 import os
+
 import pytest
+from cryptography.fernet import Fernet
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import sessionmaker
-from cryptography.fernet import Fernet
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -15,21 +16,23 @@ def _env():
 
 @pytest.fixture
 def client():
-    from app.db import Base, get_engine, get_db
+    from app.brokers.fake import FakeBroker
+    from app.db import Base, get_db, get_engine
     from app.main import app
     from app.models import BrokerageAccount  # noqa
     from app.routers import orders as orders_router
-    from app.brokers.fake import FakeBroker
 
     engine = get_engine()
     Base.metadata.drop_all(engine)
     Base.metadata.create_all(engine)
     from app.routers.dashboard import clear_dashboard_cache
-    from app.routers.stocks import clear_stocks_catalog_cache
+    from app.routers.positions import clear_positions_cache
     from app.routers.research import clear_research_cache
+    from app.routers.stocks import clear_stocks_catalog_cache
     clear_dashboard_cache()
     clear_stocks_catalog_cache()
     clear_research_cache()
+    clear_positions_cache()
 
     TestSession = sessionmaker(bind=engine, expire_on_commit=False)
 

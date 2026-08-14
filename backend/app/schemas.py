@@ -241,6 +241,18 @@ class PortfolioHealthOut(BaseModel):
     model: str | None = None
 
 
+class PositionsBootstrapOut(BaseModel):
+    account: AccountOut | None = None
+    positions: list[PositionOut] = Field(default_factory=list)
+    quotes: list[QuoteOut] = Field(default_factory=list)
+    cash: float | None = None
+    portfolio_health: PortfolioHealthOut = Field(
+        default_factory=lambda: PortfolioHealthOut(available=False)
+    )
+    health_key: str | None = None
+    health_pending: bool = False
+
+
 class RiskExplainIn(BaseModel):
     reason: str
     symbol: str = ""

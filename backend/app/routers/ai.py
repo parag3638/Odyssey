@@ -38,6 +38,9 @@ router = APIRouter(prefix="/ai")
 _context_executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="congress-context")
 _context_lock = Lock()
 _context_pending: set[str] = set()
+_health_executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="portfolio-health")
+_health_lock = Lock()
+_health_pending: set[str] = set()
 
 
 # Overridable seams for tests (mirror stocks_router.get_market_data / get_finnhub).
@@ -133,6 +136,76 @@ def _schedule_congress_context(symbol: str) -> None:
                 _context_pending.discard(symbol)
 
     _context_executor.submit(_run)
+
+
+def _generate_portfolio_health(key: str, conc: dict) -> None:
+    llm = get_llm()
+    if not llm.enabled:
+        return
+    result = llm.complete_json(
+        system=ai_service.HEALTH_SYSTEM,
+        user=ai_service.render_health_prompt(conc),
+        schema=ai_service.PROSE_SCHEMA,
+    )
+    if not result or not result.get("text"):
+        return
+    top = [ConcentrationOut(**row) for row in (conc["positions"][:3] + conc["sectors"][:2])]
+    value = PortfolioHealthOut(
+        available=True,
+        text=result["text"],
+        concentrations=top,
+        model=llm.model,
+    ).model_dump()
+    db = get_sessionmaker()()
+    try:
+        set_cached_many(db, {key: value})
+    finally:
+        db.close()
+
+
+def _schedule_portfolio_health(key: str, conc: dict) -> None:
+    with _health_lock:
+        if key in _health_pending:
+            return
+        _health_pending.add(key)
+
+    def _run() -> None:
+        try:
+            _generate_portfolio_health(key, conc)
+        finally:
+            with _health_lock:
+                _health_pending.discard(key)
+
+    _health_executor.submit(_run)
+
+
+def portfolio_health_for_holdings(
+    db: Session,
+    holdings: list[dict],
+    *,
+    schedule: bool = True,
+) -> tuple[PortfolioHealthOut, str | None, bool]:
+    if not holdings:
+        return PortfolioHealthOut(available=False), None, False
+    symbols = [holding["symbol"] for holding in holdings]
+    sectors = {
+        ticker.symbol: (ticker.sector or "Unknown")
+        for ticker in db.query(Ticker).filter(Ticker.symbol.in_(symbols)).all()
+    }
+    conc = ai_service.portfolio_concentrations(holdings, sectors)
+    if conc["total"] <= 0:
+        return PortfolioHealthOut(available=False), None, False
+    signature = ",".join(
+        f"{row['label']}:{row['weight_pct']}" for row in conc["positions"]
+    )
+    key = f"ai_health:{hashlib.sha1(signature.encode()).hexdigest()[:16]}"
+    data = cached_value(db, key, 6 * 3600)
+    if isinstance(data, dict):
+        return PortfolioHealthOut(**data), key, False
+    pending = get_llm().enabled
+    if pending and schedule:
+        _schedule_portfolio_health(key, conc)
+    return PortfolioHealthOut(available=False), key, pending
 
 
 @router.get("/stocks/{symbol}/summary", response_model=AiResponse)
@@ -264,36 +337,19 @@ def portfolio_health(db: Session = Depends(get_db)) -> PortfolioHealthOut:
     ]
     if not holdings:
         return PortfolioHealthOut(available=False)
-    syms = [h["symbol"] for h in holdings]
+    health, key, pending = portfolio_health_for_holdings(db, holdings, schedule=False)
+    if health.available or not pending or key is None:
+        return health
+    symbols = [holding["symbol"] for holding in holdings]
     sectors = {
-        t.symbol: (t.sector or "Unknown")
-        for t in db.query(Ticker).filter(Ticker.symbol.in_(syms)).all()
+        ticker.symbol: (ticker.sector or "Unknown")
+        for ticker in db.query(Ticker).filter(Ticker.symbol.in_(symbols)).all()
     }
     conc = ai_service.portfolio_concentrations(holdings, sectors)
-    if conc["total"] <= 0:
-        return PortfolioHealthOut(available=False)
-
-    ordered = sorted(holdings, key=lambda x: x["symbol"])
-    sig = ",".join(f"{h['symbol']}:{round(float(h['qty']), 2)}" for h in ordered)
-    key = f"ai_health:{hashlib.sha1(sig.encode()).hexdigest()[:16]}"
-
-    def _generate():
-        result = llm.complete_json(
-            system=ai_service.HEALTH_SYSTEM,
-            user=ai_service.render_health_prompt(conc),
-            schema=ai_service.PROSE_SCHEMA,
-        )
-        if not result or not result.get("text"):
-            return None
-        top = [ConcentrationOut(**c) for c in (conc["positions"][:3] + conc["sectors"][:2])]
-        return PortfolioHealthOut(
-            available=True, text=result["text"], concentrations=top, model=llm.model,
-        ).model_dump()
-
-    data = cached(db, key, 6 * 3600, _generate)
-    if isinstance(data, dict):
-        return PortfolioHealthOut(**data)
-    return PortfolioHealthOut(available=False)
+    db.rollback()
+    _generate_portfolio_health(key, conc)
+    data = cached_value(db, key, 6 * 3600)
+    return PortfolioHealthOut(**data) if isinstance(data, dict) else health
 
 
 @router.post("/risk/explain", response_model=AiResponse)

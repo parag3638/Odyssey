@@ -2,9 +2,9 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  getPortfolioOverview,
-  listAccounts,
+  getPositionsBootstrap,
   type AccountOut,
+  type PortfolioHealthOut,
   type Position,
   type QuoteOut,
 } from "@/lib/api";
@@ -19,15 +19,23 @@ export function usePortfolio() {
   const [cash, setCash] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [portfolioHealth, setPortfolioHealth] = useState<PortfolioHealthOut | null>(null);
+  const [healthKey, setHealthKey] = useState<string | null>(null);
+  const [healthPending, setHealthPending] = useState(false);
 
-  const loadAll = useCallback(async (accountId: string) => {
+  const loadAll = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const overview = await getPortfolioOverview(accountId);
+      const overview = await getPositionsBootstrap();
+      setAccount(overview.account);
       setPositions(overview.positions);
       setQuotes(overview.quotes);
       setCash(overview.cash);
+      setPortfolioHealth(overview.portfolio_health);
+      setHealthKey(overview.health_key);
+      setHealthPending(overview.health_pending);
+      if (!overview.account) setError("No accounts found. Connect one to begin.");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to load positions.");
       setPositions([]);
@@ -36,35 +44,19 @@ export function usePortfolio() {
     }
   }, []);
 
-  const loadAccount = useCallback(async () => {
-    try {
-      const accounts = await listAccounts();
-      const first = accounts[0] ?? null;
-      setAccount(first);
-      if (first) await loadAll(first.id);
-      else {
-        setLoading(false);
-        setError("No accounts found. Connect one to begin.");
-      }
-    } catch (e) {
-      setLoading(false);
-      setError(e instanceof Error ? e.message : "Could not reach the backend.");
-    }
-  }, [loadAll]);
-
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      if (!cancelled) await loadAccount();
+      if (!cancelled) await loadAll();
     })();
     return () => {
       cancelled = true;
     };
-  }, [loadAccount]);
+  }, [loadAll]);
 
   const refresh = useCallback(() => {
-    if (account) void loadAll(account.id);
-  }, [account, loadAll]);
+    void loadAll();
+  }, [loadAll]);
 
   const holdings: HoldingView[] = useMemo(() => {
     const qmap = new Map(quotes.map((q) => [q.symbol, q]));
@@ -124,8 +116,11 @@ export function usePortfolio() {
     allTime,
     loading,
     error,
+    portfolioHealth,
+    healthKey,
+    healthPending,
     refresh,
-    reloadAccount: loadAccount,
+    reloadAccount: loadAll,
     hasData: positions.length > 0,
   };
 }
