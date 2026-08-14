@@ -1,5 +1,5 @@
 const API_BASE =
-  process.env.NEXT_PUBLIC_API_BASE ?? "https://site--odyssey-fastapi--jhkkz9lzfqht.code.run";
+  process.env.NEXT_PUBLIC_API_BASE ?? "https://backend--odyssey--grmgc87s4dxd.code.run";
 
 export interface Position {
   symbol: string;
