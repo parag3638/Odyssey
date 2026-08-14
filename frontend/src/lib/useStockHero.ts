@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo } from "react";
+import useSWR from "swr";
 import {
   getStock,
   getStockHistory,
@@ -20,78 +21,21 @@ export function useStockHero(
   fallbackPrice: number | null,
   up: boolean,
 ) {
-  const [detail, setDetail] = useState<StockDetailData | null>(null);
-  const [history, setHistory] = useState<HistoryPoint[]>([]);
-  const [loadingDetail, setLoadingDetail] = useState(false);
-  const [loadingChart, setLoadingChart] = useState(false);
+  const detailQuery = useSWR<StockDetailData>(
+    symbol ? ["stock-detail", symbol] : null,
+    () => getStock(symbol),
+    { dedupingInterval: 5 * 60_000, revalidateOnFocus: false, keepPreviousData: true },
+  );
+  const historyQuery = useSWR<HistoryPoint[]>(
+    symbol ? ["stock-history", symbol, range] : null,
+    () => getStockHistory(symbol, range),
+    { dedupingInterval: 5 * 60_000, revalidateOnFocus: false, keepPreviousData: true },
+  );
 
-  const detailCache = useRef(new Map<string, StockDetailData>());
-  const histCache = useRef(new Map<string, HistoryPoint[]>());
-
-  // Fundamentals — keyed by symbol. State writes live inside an async IIFE
-  // (like usePortfolio) so none are synchronous statements of the effect body.
-  useEffect(() => {
-    if (!symbol) return;
-    let cancelled = false;
-    (async () => {
-      const cached = detailCache.current.get(symbol);
-      if (cached) {
-        if (!cancelled) {
-          setDetail(cached);
-          setLoadingDetail(false);
-        }
-        return;
-      }
-      setDetail(null);
-      setLoadingDetail(true);
-      try {
-        const d = await getStock(symbol);
-        if (!cancelled) {
-          detailCache.current.set(symbol, d);
-          setDetail(d);
-        }
-      } catch {
-        if (!cancelled) setDetail(null);
-      } finally {
-        if (!cancelled) setLoadingDetail(false);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [symbol]);
-
-  // Price history — keyed by symbol + range.
-  useEffect(() => {
-    if (!symbol) return;
-    let cancelled = false;
-    (async () => {
-      const key = `${symbol}|${range}`;
-      const cached = histCache.current.get(key);
-      if (cached) {
-        if (!cancelled) {
-          setHistory(cached);
-          setLoadingChart(false);
-        }
-        return;
-      }
-      setLoadingChart(true);
-      try {
-        const h = await getStockHistory(symbol, range);
-        if (!cancelled) {
-          histCache.current.set(key, h);
-          setHistory(h);
-        }
-      } catch {
-        if (!cancelled) setHistory([]);
-      } finally {
-        if (!cancelled) setLoadingChart(false);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [symbol, range]);
+  const detail = detailQuery.data ?? null;
+  const history = useMemo(() => historyQuery.data ?? [], [historyQuery.data]);
+  const loadingDetail = detailQuery.isLoading;
+  const loadingChart = historyQuery.isLoading;
 
   const realChart = history.length > 1;
   const series = useMemo(

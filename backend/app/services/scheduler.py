@@ -1,4 +1,5 @@
 from apscheduler.schedulers.background import BackgroundScheduler
+from datetime import datetime, timezone
 
 _scheduler: BackgroundScheduler | None = None
 
@@ -64,8 +65,35 @@ def scrape_signals_job():
     db = get_sessionmaker()()
     try:
         sync_from_capitol_trades(db, limit=50)
+        from app.routers.dashboard import clear_dashboard_cache
+        clear_dashboard_cache()
     except Exception:
         pass
+    finally:
+        db.close()
+
+
+def refresh_market_cache_job():
+    """Refresh shared quote/mover caches away from the request path."""
+    from app.db import get_sessionmaker
+    from app.models import Ticker
+    from app.services.finnhub import set_cached_many
+    from app.services.market_data import market_data_for
+
+    db = get_sessionmaker()()
+    try:
+        market_data = market_data_for(db)
+        symbols = [symbol for (symbol,) in db.query(Ticker.symbol).all()]
+        db.rollback()
+        if market_data is None or not symbols:
+            return
+        quotes = market_data.snapshots(symbols)
+        movers = market_data.movers()
+        set_cached_many(db, {"quotes_all": quotes, "movers": movers})
+        from app.routers.dashboard import clear_dashboard_cache
+        clear_dashboard_cache()
+    except Exception:
+        db.rollback()
     finally:
         db.close()
 
@@ -75,7 +103,16 @@ def start_scheduler():
     if _scheduler is not None:
         return _scheduler
     _scheduler = BackgroundScheduler(daemon=True)
-    _scheduler.add_job(tick_all_active_bots, "interval", seconds=300, id="tick_all", replace_existing=True)
-    _scheduler.add_job(scrape_signals_job, "interval", seconds=3600, id="scrape_signals", replace_existing=True)
+    common = {"replace_existing": True, "coalesce": True, "max_instances": 1}
+    _scheduler.add_job(tick_all_active_bots, "interval", seconds=300, id="tick_all", **common)
+    _scheduler.add_job(scrape_signals_job, "interval", seconds=3600, id="scrape_signals", **common)
+    _scheduler.add_job(
+        refresh_market_cache_job,
+        "interval",
+        seconds=240,
+        id="refresh_market_cache",
+        next_run_time=datetime.now(timezone.utc),
+        **common,
+    )
     _scheduler.start()
     return _scheduler

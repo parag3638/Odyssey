@@ -43,10 +43,12 @@ export function Nav({
   accountLabel,
   accountInitials,
   active = "overview",
+  fetchAccount = true,
 }: {
   accountLabel?: string;
   accountInitials?: string;
   active?: NavKey;
+  fetchAccount?: boolean;
 }) {
   const router = useRouter();
   const [date, setDate] = useState("");
@@ -59,6 +61,7 @@ export function Nav({
   const [aiOpen, setAiOpen] = useState(false);
 
   useEffect(() => {
+    if (!fetchAccount) return;
     let cancelled = false;
     (async () => {
       try {
@@ -74,7 +77,10 @@ export function Nav({
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [fetchAccount]);
+
+  const visibleAccountLabel = accountLabel ?? acctLabel;
+  const visibleAccountInitials = accountInitials ?? acctInitials;
 
   useEffect(() => {
     const id = requestAnimationFrame(() => {
@@ -215,11 +221,11 @@ export function Nav({
         <button
           className="acct-pill"
           type="button"
-          title={acctLabel}
-          aria-label={`Account: ${acctLabel}`}
+          title={visibleAccountLabel}
+          aria-label={`Account: ${visibleAccountLabel}`}
           onClick={() => go("/positions")}
         >
-          <span className="av">{acctInitials}</span>
+          <span className="av">{visibleAccountInitials}</span>
         </button>
       </header>
 
@@ -267,11 +273,11 @@ export function Nav({
         <button
           className="lr av"
           type="button"
-          data-tip={acctLabel}
-          aria-label={`Account: ${acctLabel}`}
+          data-tip={visibleAccountLabel}
+          aria-label={`Account: ${visibleAccountLabel}`}
           onClick={() => go("/positions")}
         >
-          {acctInitials}
+          {visibleAccountInitials}
         </button>
       </aside>
 

@@ -14,7 +14,12 @@ export default function PositionsPage() {
 
   return (
     <>
-      <Nav active="positions" accountLabel={label} accountInitials={initials(label)} />
+      <Nav
+        active="positions"
+        accountLabel={label}
+        accountInitials={initials(label)}
+        fetchAccount={false}
+      />
 
       <div className="wrap roomy">
         <div className="shead reveal" style={{ ["--i" as string]: 0 }}>

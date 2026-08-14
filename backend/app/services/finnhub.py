@@ -36,16 +36,21 @@ def cached(db: Session, key: str, ttl_sec: int, fetch: Callable[[], Any]) -> Any
     row = db.get(MarketCache, key)
     if row is not None and _age_seconds(row.fetched_at) <= ttl_sec:
         return row.data.get("v") if isinstance(row.data, dict) and "v" in row.data else row.data
+    # End the read transaction before waiting on an external API. A stale cache
+    # miss must not reserve one of the backend's five Supabase connections.
+    db.rollback()
     data = fetch()
     if data is not None:
-        payload = data if isinstance(data, dict) and "v" not in data else {"v": data}
-        if row is None:
-            db.add(MarketCache(key=key, data=payload, fetched_at=_now()))
-        else:
-            row.data = payload
-            row.fetched_at = _now()
-        db.commit()
+        set_cached_many(db, {key: data})
     return data
+
+
+def cached_value(db: Session, key: str, ttl_sec: int | None = None) -> Any:
+    """Read a cache value without triggering an upstream request."""
+    row = db.get(MarketCache, key)
+    if row is None or (ttl_sec is not None and _age_seconds(row.fetched_at) > ttl_sec):
+        return None
+    return row.data.get("v") if isinstance(row.data, dict) and "v" in row.data else row.data
 
 
 def get_cached_many(db: Session, keys: list[str], ttl_sec: int) -> dict[str, Any]:

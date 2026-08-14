@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, event
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
 from app.config import get_settings
 
@@ -29,6 +29,9 @@ def get_engine():
             max_overflow=2,
             pool_recycle=300,
         )
+        from app.timing import after_cursor_execute, before_cursor_execute
+        event.listen(_engine, "before_cursor_execute", before_cursor_execute)
+        event.listen(_engine, "after_cursor_execute", after_cursor_execute)
     return _engine
 
 

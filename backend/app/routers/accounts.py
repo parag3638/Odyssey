@@ -21,6 +21,8 @@ def create_account(body: AccountCreate, db: Session = Depends(get_db)):
     db.add(acct)
     db.commit()
     db.refresh(acct)
+    from app.routers.dashboard import clear_dashboard_cache
+    clear_dashboard_cache()
     return AccountOut(id=acct.id, label=acct.label, mode=acct.mode,
                       masked_secret=mask_secret(body.alpaca_secret))
 

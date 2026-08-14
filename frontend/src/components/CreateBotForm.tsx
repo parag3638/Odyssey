@@ -8,13 +8,15 @@ import { Button, Field, Input, Select } from "@/components/ui";
 export function CreateBotForm({
   bare,
   onNeedAccount,
+  initialAccounts,
 }: {
   bare?: boolean;
   onNeedAccount?: () => void;
+  initialAccounts?: AccountOut[];
 }) {
   const router = useRouter();
-  const [accounts, setAccounts] = useState<AccountOut[]>([]);
-  const [accountId, setAccountId] = useState("");
+  const [accounts, setAccounts] = useState<AccountOut[]>(initialAccounts ?? []);
+  const [accountId, setAccountId] = useState(initialAccounts?.[0]?.id ?? "");
   const [name, setName] = useState("");
   const [strategy, setStrategy] = useState<"trailing_stop" | "copy_trade">(
     "trailing_stop",
@@ -27,9 +29,10 @@ export function CreateBotForm({
   const [perTradeNotional, setPerTradeNotional] = useState("1000");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [loaded, setLoaded] = useState(false);
+  const [loaded, setLoaded] = useState(initialAccounts !== undefined);
 
   useEffect(() => {
+    if (initialAccounts !== undefined) return;
     let cancelled = false;
     (async () => {
       try {
@@ -46,7 +49,7 @@ export function CreateBotForm({
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [initialAccounts]);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();

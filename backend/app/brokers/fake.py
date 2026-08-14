@@ -43,6 +43,15 @@ class FakeBroker:
             raise BrokerError(f"no quote for {symbol}")
         return Quote(symbol=symbol, price=self._quotes[symbol], prev_close=self._prev.get(symbol))
 
+    def get_quotes(self, symbols: list[str]) -> list[Quote]:
+        out = []
+        for symbol in symbols:
+            try:
+                out.append(self.get_quote(symbol))
+            except BrokerError:
+                continue
+        return out
+
     def get_clock(self) -> Clock:
         return Clock(is_open=self._market_open)
 

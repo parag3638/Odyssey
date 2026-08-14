@@ -1,20 +1,13 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
-import {
-  listSignals,
-  listStocks,
-  type Signal,
-  type StockRow,
-} from "@/lib/api";
+import useSWR from "swr";
+import { getDashboardBootstrap } from "@/lib/api";
 import { initials } from "@/lib/format";
-import { usePortfolio } from "@/lib/usePortfolio";
 import { Nav } from "@/components/Nav";
 import { ActiveBots } from "@/components/ActiveBots";
-import { CreateBotForm } from "@/components/CreateBotForm";
-import { ConnectAccountForm } from "@/components/ConnectAccountForm";
-import { OrderForm } from "@/components/OrderForm";
 import { StocksTable } from "@/components/StocksTable";
 import { MoversWidget } from "@/components/MoversWidget";
 import { PoliticianTrades } from "@/components/PoliticianTrades";
@@ -24,27 +17,38 @@ import { StockHero } from "@/components/StockHero";
 import { useStockHero } from "@/lib/useStockHero";
 import { buildKpis } from "@/lib/kpis";
 
+const CreateBotForm = dynamic(
+  () => import("@/components/CreateBotForm").then((module) => module.CreateBotForm),
+  { ssr: false },
+);
+const ConnectAccountForm = dynamic(
+  () => import("@/components/ConnectAccountForm").then((module) => module.ConnectAccountForm),
+  { ssr: false },
+);
+const OrderForm = dynamic(
+  () => import("@/components/OrderForm").then((module) => module.OrderForm),
+  { ssr: false },
+);
+
+const DEFAULT_FEATURED_SYMBOL = "NVDA";
+
 const PROMO = [
   { title: "Automate a trailing stop", desc: "Let a bot follow a stock up and lock in gains with a moving floor." },
   { title: "Mirror congressional trades", desc: "Copy disclosed buys and sells from Capitol Trades, sized to your rules." },
 ];
 
 export default function HomePage() {
-  const pf = usePortfolio();
-  const [stocks, setStocks] = useState<StockRow[]>([]);
-  const [signals, setSignals] = useState<Signal[]>([]);
-  const [signalsReady, setSignalsReady] = useState(false);
+  const dashboard = useSWR("dashboard-bootstrap", getDashboardBootstrap, {
+    dedupingInterval: 30_000,
+    revalidateOnFocus: false,
+    keepPreviousData: true,
+  });
   const [greet, setGreet] = useState("Welcome Back");
-  const [selected, setSelected] = useState("");
+  const [selected, setSelected] = useState(DEFAULT_FEATURED_SYMBOL);
   const [range, setRange] = useState("1M");
   const [showOrder, setShowOrder] = useState(false);
   const [showBot, setShowBot] = useState(false);
   const [showConnect, setShowConnect] = useState(false);
-
-  useEffect(() => {
-    listStocks({ limit: 200 }).then(setStocks).catch(() => setStocks([]));
-    listSignals().then(setSignals).catch(() => setSignals([])).finally(() => setSignalsReady(true));
-  }, []);
 
   useEffect(() => {
     const id = requestAnimationFrame(() => {
@@ -54,24 +58,10 @@ export default function HomePage() {
     return () => cancelAnimationFrame(id);
   }, []);
 
-  const topCap = useMemo(
-    () => [...stocks].sort((a, b) => (b.market_cap ?? 0) - (a.market_cap ?? 0)).slice(0, 8),
-    [stocks],
-  );
-  const ranked = useMemo(
-    () =>
-      stocks
-        .filter((s) => s.change_pct != null)
-        .sort((a, b) => (b.change_pct ?? 0) - (a.change_pct ?? 0)),
-    [stocks],
-  );
-  const moverData = useMemo(
-    () => ({
-      gainers: ranked.slice(0, 4).map((s) => ({ symbol: s.symbol, name: s.name, change_pct: s.change_pct })),
-      losers: ranked.slice(-4).reverse().map((s) => ({ symbol: s.symbol, name: s.name, change_pct: s.change_pct })),
-    }),
-    [ranked],
-  );
+  const topCap = useMemo(() => dashboard.data?.stocks ?? [], [dashboard.data?.stocks]);
+  const signals = dashboard.data?.signals ?? [];
+  const bots = dashboard.data?.bots ?? [];
+  const moverData = dashboard.data?.movers ?? { gainers: [], losers: [] };
 
   // Single-stock hero: ticker-rail options + the effective selection (default to
   // the largest-cap stock until the user picks one — derived during render).
@@ -79,16 +69,22 @@ export default function HomePage() {
     () => topCap.map((s) => ({ label: `${s.symbol} · ${s.name}`, value: s.symbol })),
     [topCap],
   );
-  const selectedSymbol = selected || topCap[0]?.symbol || "";
+  const selectedSymbol = selected || dashboard.data?.featured_symbol || DEFAULT_FEATURED_SYMBOL;
   const selectedRow = topCap.find((s) => s.symbol === selectedSymbol) ?? null;
   const isUp = (selectedRow?.change_pct ?? 0) >= 0;
   const hero = useStockHero(selectedSymbol, range, selectedRow?.price ?? null, isUp);
 
-  const accountLabel = pf.account?.label ?? "there";
+  const account = dashboard.data?.account ?? null;
+  const accountLabel = account?.label ?? "there";
 
   return (
     <>
-      <Nav active="overview" accountLabel={accountLabel} accountInitials={initials(accountLabel)} />
+      <Nav
+        active="overview"
+        accountLabel={accountLabel}
+        accountInitials={initials(accountLabel)}
+        fetchAccount={false}
+      />
 
       <div className="wrap roomy">
         <div className="greet reveal" style={{ ["--i" as string]: 0 }}>
@@ -127,11 +123,13 @@ export default function HomePage() {
 
             <div className="sec-h" style={{ margin: "28px 0 13px" }}>
               <h2>Stocks</h2>
-              <Link href="/stocks">Browse all →</Link>
+              <Link href="/stocks" prefetch={false}>
+                Browse all →
+              </Link>
             </div>
             <StocksTable
               rows={topCap.slice(0, 5)}
-              loading={stocks.length === 0}
+              loading={dashboard.isLoading}
               empty="Run the ticker seed to populate stocks."
               initialSort={{ key: "market_cap", dir: "desc" }}
               minimal
@@ -150,60 +148,70 @@ export default function HomePage() {
                 <span className="ql">New bot</span>
               </button>
             </div>
-            <ActiveBots compact />
+            <ActiveBots compact data={bots} dataLoading={dashboard.isLoading} />
             <PromoCarousel slides={PROMO} />
-            <MoversWidget gainers={moverData.gainers} losers={moverData.losers} loading={stocks.length === 0} />
-            <PoliticianTrades signals={signals} loading={!signalsReady} />
+            <MoversWidget
+              gainers={moverData.gainers}
+              losers={moverData.losers}
+              loading={dashboard.isLoading}
+            />
+            <PoliticianTrades signals={signals} loading={dashboard.isLoading} />
           </aside>
         </div>
       </div>
 
-      <Modal open={showOrder} onClose={() => setShowOrder(false)} title="New order" width={460}>
-        {pf.account ? (
-          <OrderForm
+      {showOrder && (
+        <Modal open onClose={() => setShowOrder(false)} title="New order" width={460}>
+          {account ? (
+            <OrderForm
+              bare
+              accountId={account.id}
+              onPlaced={() => {
+                setShowOrder(false);
+              }}
+            />
+          ) : (
+            <div>
+              <div className="faint">Connect an account to place orders.</div>
+              <Button
+                variant="buy"
+                style={{ marginTop: 12 }}
+                onClick={() => {
+                  setShowOrder(false);
+                  setShowConnect(true);
+                }}
+              >
+                Connect account
+              </Button>
+            </div>
+          )}
+        </Modal>
+      )}
+
+      {showBot && (
+        <Modal open onClose={() => setShowBot(false)} title="New bot" width={560}>
+          <CreateBotForm
             bare
-            accountId={pf.account.id}
-            onPlaced={() => {
-              pf.refresh();
-              setShowOrder(false);
+            initialAccounts={account ? [account] : []}
+            onNeedAccount={() => {
+              setShowBot(false);
+              setShowConnect(true);
             }}
           />
-        ) : (
-          <div>
-            <div className="faint">Connect an account to place orders.</div>
-            <Button
-              variant="buy"
-              style={{ marginTop: 12 }}
-              onClick={() => {
-                setShowOrder(false);
-                setShowConnect(true);
-              }}
-            >
-              Connect account
-            </Button>
-          </div>
-        )}
-      </Modal>
+        </Modal>
+      )}
 
-      <Modal open={showBot} onClose={() => setShowBot(false)} title="New bot" width={560}>
-        <CreateBotForm
-          bare
-          onNeedAccount={() => {
-            setShowBot(false);
-            setShowConnect(true);
-          }}
-        />
-      </Modal>
-
-      <Modal open={showConnect} onClose={() => setShowConnect(false)} title="Connect account" width={520}>
-        <ConnectAccountForm
-          bare
-          onConnected={() => {
-            pf.reloadAccount();
-            setShowConnect(false);
-          }}
-        />
-      </Modal>
+      {showConnect && (
+        <Modal open onClose={() => setShowConnect(false)} title="Connect account" width={520}>
+          <ConnectAccountForm
+            bare
+            onConnected={() => {
+              void dashboard.mutate();
+              setShowConnect(false);
+            }}
+          />
+        </Modal>
+      )}
     </>
   );
 }

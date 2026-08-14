@@ -2,9 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  getAccountSummary,
-  getPositions,
-  getQuotes,
+  getPortfolioOverview,
   listAccounts,
   type AccountOut,
   type Position,
@@ -26,16 +24,10 @@ export function usePortfolio() {
     setLoading(true);
     setError(null);
     try {
-      // Fetch all three together and commit in one render so the balance never
-      // shows an intermediate value (e.g. holdings-at-cost before cash loads).
-      const [pos, q, summary] = await Promise.all([
-        getPositions(accountId),
-        getQuotes(accountId).catch(() => [] as QuoteOut[]),
-        getAccountSummary(accountId).catch(() => ({ cash: null })),
-      ]);
-      setPositions(pos);
-      setQuotes(q);
-      setCash(summary.cash);
+      const overview = await getPortfolioOverview(accountId);
+      setPositions(overview.positions);
+      setQuotes(overview.quotes);
+      setCash(overview.cash);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to load positions.");
       setPositions([]);

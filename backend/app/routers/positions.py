@@ -4,7 +4,7 @@ from app.db import get_db
 from app.models import BrokerageAccount
 from app.brokers.base import BrokerError
 from app.routers import orders as orders_router
-from app.schemas import PositionOut, QuoteOut, AccountSummaryOut
+from app.schemas import PositionOut, QuoteOut, AccountSummaryOut, AccountOut, PortfolioOverviewOut
 
 router = APIRouter(prefix="/positions")
 
@@ -55,3 +55,33 @@ def account_summary(account_id: int, db: Session = Depends(get_db)):
     except Exception:
         cash = None
     return AccountSummaryOut(cash=cash)
+
+
+@router.get("/{account_id}/overview", response_model=PortfolioOverviewOut)
+def portfolio_overview(account_id: int, db: Session = Depends(get_db)):
+    account = _account_or_404(account_id, db)
+    account_out = AccountOut(
+        id=account.id,
+        label=account.label,
+        mode=account.mode,
+        masked_secret="••••" + account.alpaca_key_id[-4:],
+    )
+    broker = orders_router.get_broker_for_account(account)
+    db.rollback()
+
+    positions = broker.get_positions()
+    symbols = [p.symbol for p in positions]
+    quotes = broker.get_quotes(symbols)
+    try:
+        cash = broker.get_cash()
+    except Exception:
+        cash = None
+    return PortfolioOverviewOut(
+        account=account_out,
+        positions=[
+            PositionOut(symbol=p.symbol, qty=p.qty, avg_entry_price=p.avg_entry_price)
+            for p in positions
+        ],
+        quotes=[QuoteOut(symbol=q.symbol, price=q.price, prev_close=q.prev_close) for q in quotes],
+        cash=cash,
+    )

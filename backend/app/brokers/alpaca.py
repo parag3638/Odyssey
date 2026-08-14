@@ -68,6 +68,39 @@ class AlpacaBroker:
         except Exception as e:
             raise BrokerError(f"quote failed for {symbol}: {e}") from e
 
+    def get_quotes(self, symbols: list[str]) -> list[Quote]:
+        symbols = [symbol.upper() for symbol in symbols if symbol]
+        if not symbols or self._data is None:
+            return []
+        try:
+            from alpaca.data.requests import StockSnapshotRequest
+
+            snapshots = self._data.get_stock_snapshot(
+                StockSnapshotRequest(symbol_or_symbols=symbols)
+            )
+            out = []
+            for symbol in symbols:
+                snap = snapshots.get(symbol)
+                if snap is None or getattr(snap, "latest_trade", None) is None:
+                    continue
+                prev_bar = getattr(snap, "previous_daily_bar", None)
+                out.append(
+                    Quote(
+                        symbol=symbol,
+                        price=float(snap.latest_trade.price),
+                        prev_close=float(prev_bar.close) if prev_bar is not None else None,
+                    )
+                )
+            return out
+        except Exception:
+            return [quote for symbol in symbols if (quote := self._best_effort_quote(symbol))]
+
+    def _best_effort_quote(self, symbol: str) -> Quote | None:
+        try:
+            return self.get_quote(symbol)
+        except BrokerError:
+            return None
+
     def get_clock(self) -> Clock:
         try:
             c = self._client.get_clock()

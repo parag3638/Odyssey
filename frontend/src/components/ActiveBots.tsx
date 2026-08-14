@@ -42,15 +42,20 @@ function botTitle(bot: Bot): string {
 export function ActiveBots({
   action,
   compact,
+  data,
+  dataLoading,
 }: {
   action?: React.ReactNode;
   compact?: boolean;
+  data?: Bot[];
+  dataLoading?: boolean;
 }) {
   const [bots, setBots] = useState<Bot[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (data !== undefined) return;
     let cancelled = false;
     (async () => {
       try {
@@ -66,7 +71,10 @@ export function ActiveBots({
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [data]);
+
+  const visibleBots = data ?? bots;
+  const visibleLoading = data !== undefined ? Boolean(dataLoading) : loading;
 
   if (compact) {
     const note = (t: string) => (
@@ -78,18 +86,18 @@ export function ActiveBots({
       <div className="widget">
         <div className="wh">
           <span className="wht">
-            Active bots{!loading && !error ? ` · ${bots.length}` : ""}
+            Active bots{!visibleLoading && !error ? ` · ${visibleBots.length}` : ""}
           </span>
         </div>
-        {loading && note("Loading…")}
-        {!loading && error && note("Couldn’t load bots.")}
-        {!loading && !error && bots.length === 0 && note("No bots yet.")}
-        {!loading &&
+        {visibleLoading && note("Loading…")}
+        {!visibleLoading && error && note("Couldn’t load bots.")}
+        {!visibleLoading && !error && visibleBots.length === 0 && note("No bots yet.")}
+        {!visibleLoading &&
           !error &&
-          bots.map((bot) => {
+          visibleBots.map((bot) => {
             const paused = bot.status !== "active";
             return (
-              <Link key={bot.id} href={`/bots/${bot.id}`} className="mrow">
+              <Link key={bot.id} href={`/bots/${bot.id}`} className="mrow" prefetch={false}>
                 <span className={`bdot${paused ? " paused" : ""}`} />
                 <span className="mn">{botTitle(bot)}</span>
                 <Badge tone={paused ? "n" : "g"}>{bot.status}</Badge>
@@ -105,12 +113,12 @@ export function ActiveBots({
       <div className="sec-h" style={{ margin: "0 0 13px" }}>
         <h2>
           Active bots{" "}
-          {!loading && !error && <span className="cnt">· {bots.length}</span>}
+          {!visibleLoading && !error && <span className="cnt">· {visibleBots.length}</span>}
         </h2>
         {action}
       </div>
       <div className="tcard">
-        {loading && (
+        {visibleLoading && (
           <div className="botrow" style={{ cursor: "default" }}>
             <Skeleton w={8} h={8} r={4} />
             <div className="binfo">
@@ -120,7 +128,7 @@ export function ActiveBots({
           </div>
         )}
 
-        {!loading && error && (
+        {!visibleLoading && error && (
           <div className="botrow" style={{ cursor: "default" }}>
             <div className="binfo">
               <div className="bsub neg">Could not load bots — {error}</div>
@@ -128,7 +136,7 @@ export function ActiveBots({
           </div>
         )}
 
-        {!loading && !error && bots.length === 0 && (
+        {!visibleLoading && !error && visibleBots.length === 0 && (
           <div className="botrow" style={{ cursor: "default" }}>
             <div className="binfo">
               <div className="bname">No bots yet</div>
@@ -137,12 +145,17 @@ export function ActiveBots({
           </div>
         )}
 
-        {!loading &&
+        {!visibleLoading &&
           !error &&
-          bots.map((bot) => {
+          visibleBots.map((bot) => {
             const paused = bot.status !== "active";
             return (
-              <Link key={bot.id} href={`/bots/${bot.id}`} className="botrow clickable">
+              <Link
+                key={bot.id}
+                href={`/bots/${bot.id}`}
+                className="botrow clickable"
+                prefetch={false}
+              >
                 <span className={`bdot${paused ? " paused" : ""}`} />
                 <div className="binfo">
                   <div className="bname">{botTitle(bot)}</div>

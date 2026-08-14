@@ -21,6 +21,9 @@ def sync_signals_now(db: Session = Depends(get_db)):
         added = _sync(db)
     except Exception as e:  # network down, page shape changed, etc.
         raise HTTPException(502, f"capitol trades fetch failed: {e}")
+    if added:
+        from app.routers.dashboard import clear_dashboard_cache
+        clear_dashboard_cache()
     return {"added": added}
 
 

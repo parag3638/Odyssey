@@ -43,6 +43,8 @@ def create_bot(body: BotCreate, db: Session = Depends(get_db)):
     bot = Bot(name=body.name, account_id=body.account_id, strategy_type=body.strategy_type,
               status="active", config=config, schedule_cadence_sec=body.cadence_sec)
     db.add(bot); db.commit(); db.refresh(bot)
+    from app.routers.dashboard import clear_dashboard_cache
+    clear_dashboard_cache()
     return _bot_out(bot)
 
 
@@ -84,6 +86,8 @@ def patch_bot(bot_id: int, body: _StatusPatch, db: Session = Depends(get_db)):
     bot.status = body.status
     db.commit()
     db.refresh(bot)
+    from app.routers.dashboard import clear_dashboard_cache
+    clear_dashboard_cache()
     return _bot_out(bot)
 
 

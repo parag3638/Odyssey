@@ -34,27 +34,18 @@ export type OrderSide = "buy" | "sell";
    demo mode lets the existing loading skeletons show so it still feels live.
    ────────────────────────────────────────────────────────────────────────── */
 
-let _backendUp: Promise<boolean> | null = null;
-function backendUp(): Promise<boolean> {
-  if (!_backendUp) {
-    _backendUp = (async () => {
-      try {
-        const ctrl = new AbortController();
-        const t = setTimeout(() => ctrl.abort(), 2000);
-        const r = await fetch(`${API_BASE}/health`, { cache: "no-store", signal: ctrl.signal });
-        clearTimeout(t);
-        return r.ok;
-      } catch {
-        return false;
-      }
-    })();
-  }
-  return _backendUp;
-}
+let _backendReachable: boolean | null = null;
 
 /** True when running off the static snapshot (backend offline). */
 export async function isDemoMode(): Promise<boolean> {
-  return !(await backendUp());
+  if (_backendReachable !== null) return !_backendReachable;
+  try {
+    const response = await fetch(`${API_BASE}/health`, { cache: "no-store" });
+    _backendReachable = response.ok;
+  } catch {
+    _backendReachable = false;
+  }
+  return !_backendReachable;
 }
 
 interface Snapshot {
@@ -76,12 +67,30 @@ function snapshot(): Promise<Snapshot | null> {
   return _snap;
 }
 
-const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 const qparams = (path: string) => new URLSearchParams(path.split("?")[1] ?? "");
 
 /** Resolve a GET path from the snapshot. Returns undefined when uncached. */
 function fromSnapshot(snap: Snapshot, path: string): unknown {
   if (path in snap.exact) return snap.exact[path];
+
+  if (path === "/dashboard/bootstrap") {
+    const accounts = (snap.exact["/accounts"] as AccountOut[] | undefined) ?? [];
+    const movers = (snap.exact["/stocks/movers"] as Movers | undefined) ?? {
+      gainers: [],
+      losers: [],
+    };
+    const stocks = [...snap.stocks]
+      .sort((a, b) => (b.market_cap ?? 0) - (a.market_cap ?? 0))
+      .slice(0, 8);
+    return {
+      account: accounts[0] ?? null,
+      stocks,
+      movers,
+      bots: (snap.exact["/bots"] as Bot[] | undefined) ?? [],
+      signals: snap.signals.slice(0, 8),
+      featured_symbol: stocks[0]?.symbol ?? "",
+    } satisfies DashboardBootstrap;
+  }
 
   if (path.startsWith("/activity")) {
     const limit = Number(qparams(path).get("limit") ?? 50);
@@ -138,60 +147,49 @@ const REQUEST_TIMEOUT_MS = 20_000;
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const method = (init?.method ?? "GET").toUpperCase();
-
-  if (await backendUp()) {
-    const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), REQUEST_TIMEOUT_MS);
-    let res: Response;
-    try {
-      res = await fetch(`${API_BASE}${path}`, {
-        cache: "no-store",
-        headers: { "Content-Type": "application/json" },
-        ...init,
-        signal: ctrl.signal,
-      });
-    } catch (e) {
-      if (e instanceof DOMException && e.name === "AbortError") {
-        throw new Error("Request timed out — the server took too long to respond.");
-      }
-      throw e;
-    } finally {
-      clearTimeout(timer);
-    }
-    if (res.ok) return res.json() as Promise<T>;
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), REQUEST_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE}${path}`, {
+      headers: { "Content-Type": "application/json" },
+      ...init,
+      signal: ctrl.signal,
+    });
+    _backendReachable = true;
+  } catch (e) {
+    _backendReachable = false;
     if (method === "GET") {
       const snap = await snapshot();
       const cached = snap ? fromSnapshot(snap, path) : undefined;
       if (cached !== undefined) return cached as T;
     }
-    let detail: string | undefined;
-    try {
-      const body = await res.json();
-      detail =
-        typeof body?.detail === "string"
-          ? body.detail
-          : body?.detail
-            ? JSON.stringify(body.detail)
-            : undefined;
-    } catch {
-      // body wasn't JSON — fall through to status text
+    if (e instanceof DOMException && e.name === "AbortError") {
+      throw new Error("Request timed out — the server took too long to respond.");
     }
-    throw new Error(detail ?? `Request failed (${res.status})`);
+    throw new Error("Could not reach the backend.");
+  } finally {
+    clearTimeout(timer);
   }
-
-  // ── demo mode: backend offline, serve the snapshot ──
+  if (res.ok) return res.json() as Promise<T>;
   if (method === "GET") {
     const snap = await snapshot();
     const cached = snap ? fromSnapshot(snap, path) : undefined;
-    if (cached !== undefined) {
-      await sleep(280 + Math.floor(Math.random() * 360)); // let the skeletons breathe
-      return cached as T;
-    }
-    await sleep(200);
-    throw new Error("Offline demo — no cached data for this view.");
+    if (cached !== undefined) return cached as T;
   }
-  await sleep(150);
-  throw new Error("Demo mode — connect the backend to place trades or create bots.");
+  let detail: string | undefined;
+  try {
+    const body = await res.json();
+    detail =
+      typeof body?.detail === "string"
+        ? body.detail
+        : body?.detail
+          ? JSON.stringify(body.detail)
+          : undefined;
+  } catch {
+    // body wasn't JSON — fall through to status text
+  }
+  throw new Error(detail ?? `Request failed (${res.status})`);
 }
 
 export function getHealth(): Promise<unknown> {
@@ -260,7 +258,6 @@ const AI_UNAVAILABLE: AiResponse = {
 
 /** Plain-English, source-cited summary of a stock's recent news + analyst views. */
 export async function getAiSummary(symbol: string): Promise<AiResponse> {
-  if (await isDemoMode()) return AI_UNAVAILABLE;
   try {
     return await request<AiResponse>(`/ai/stocks/${symbol}/summary`);
   } catch {
@@ -290,7 +287,6 @@ const BULLBEAR_UNAVAILABLE: BullBearOut = {
 
 /** Bull-vs-bear synthesis for a stock (news vs ratings vs fundamentals). */
 export async function getBullBear(symbol: string): Promise<BullBearOut> {
-  if (await isDemoMode()) return BULLBEAR_UNAVAILABLE;
   try {
     return await request<BullBearOut>(`/ai/stocks/${symbol}/bull-bear`);
   } catch {
@@ -300,7 +296,6 @@ export async function getBullBear(symbol: string): Promise<BullBearOut> {
 
 /** Descriptive AI read of a stock's congressional trades (cluster + prose). */
 export async function getCongressContext(symbol: string): Promise<AiResponse> {
-  if (await isDemoMode()) return AI_UNAVAILABLE;
   try {
     return await request<AiResponse>(`/ai/signals/${symbol}/context`);
   } catch {
@@ -330,7 +325,6 @@ export async function getPortfolioHealth(): Promise<PortfolioHealthOut> {
     disclaimer: "",
     model: null,
   };
-  if (await isDemoMode()) return off;
   try {
     return await request<PortfolioHealthOut>("/ai/portfolio/health");
   } catch {
@@ -345,7 +339,6 @@ export async function explainRisk(input: {
   qty?: number;
   side?: string;
 }): Promise<AiResponse> {
-  if (await isDemoMode()) return AI_UNAVAILABLE;
   try {
     return await request<AiResponse>("/ai/risk/explain", {
       method: "POST",
@@ -381,7 +374,6 @@ export async function parseScreen(query: string): Promise<ScreenerParseOut> {
     note: null,
     model: null,
   };
-  if (await isDemoMode()) return off;
   try {
     return await request<ScreenerParseOut>("/ai/screener/parse", {
       method: "POST",
@@ -408,15 +400,15 @@ export async function streamAssistant(
 ): Promise<{ text: string; citations: Citation[] }> {
   const payload = JSON.stringify({ messages, context });
 
-  if (await backendUp()) {
-    try {
-      const res = await fetch(`${API_BASE}/ai/chat/stream`, {
+  try {
+    const res = await fetch(`${API_BASE}/ai/chat/stream`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: payload,
         signal,
-      });
-      if (res.ok && res.body) {
+    });
+    if (res.ok && res.body) {
+      _backendReachable = true;
         const reader = res.body.getReader();
         const decoder = new TextDecoder();
         let buf = "";
@@ -446,11 +438,11 @@ export async function streamAssistant(
             }
           }
         }
-        return { text, citations };
-      }
-    } catch {
-      /* fall through to the non-streaming fallback */
+      return { text, citations };
     }
+  } catch {
+    _backendReachable = false;
+    /* fall through to the non-streaming fallback */
   }
 
   // Fallback: single-shot answer (also the demo-mode path).
@@ -468,8 +460,19 @@ export interface AccountSummary {
   cash: number | null;
 }
 
+export interface PortfolioOverview {
+  account: AccountOut;
+  positions: Position[];
+  quotes: QuoteOut[];
+  cash: number | null;
+}
+
 export function getAccountSummary(accountId: string): Promise<AccountSummary> {
   return request<AccountSummary>(`/positions/${accountId}/summary`);
+}
+
+export function getPortfolioOverview(accountId: string): Promise<PortfolioOverview> {
+  return request<PortfolioOverview>(`/positions/${accountId}/overview`);
 }
 
 export function placeOrder(
@@ -669,6 +672,15 @@ export interface Movers {
   losers: MoverItem[];
 }
 
+export interface DashboardBootstrap {
+  account: AccountOut | null;
+  stocks: StockRow[];
+  movers: Movers;
+  bots: Bot[];
+  signals: Signal[];
+  featured_symbol: string;
+}
+
 export function listStocks(params?: {
   industry?: string;
   sector?: string;
@@ -711,4 +723,8 @@ export function getStockSignals(symbol: string): Promise<Signal[]> {
 }
 export function getMovers(): Promise<Movers> {
   return request<Movers>("/stocks/movers");
+}
+
+export function getDashboardBootstrap(): Promise<DashboardBootstrap> {
+  return request<DashboardBootstrap>("/dashboard/bootstrap", { cache: "no-cache" });
 }

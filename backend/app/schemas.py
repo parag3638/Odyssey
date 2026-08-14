@@ -47,6 +47,13 @@ class AccountSummaryOut(BaseModel):
     cash: float | None = None
 
 
+class PortfolioOverviewOut(BaseModel):
+    account: AccountOut
+    positions: list[PositionOut] = []
+    quotes: list[QuoteOut] = []
+    cash: float | None = None
+
+
 class BotCreate(BaseModel):
     name: str
     account_id: int
@@ -111,6 +118,26 @@ class StockRow(BaseModel):
     price: float | None = None
     change: float | None = None
     change_pct: float | None = None
+
+
+class MoverOut(BaseModel):
+    symbol: str
+    price: float
+    change_pct: float
+
+
+class MoversOut(BaseModel):
+    gainers: list[MoverOut] = []
+    losers: list[MoverOut] = []
+
+
+class DashboardBootstrapOut(BaseModel):
+    account: AccountOut | None = None
+    stocks: list[StockRow] = []
+    movers: MoversOut = Field(default_factory=MoversOut)
+    bots: list[BotOut] = []
+    signals: list[SignalOut] = []
+    featured_symbol: str = ""
 
 
 class StockDetailOut(StockRow):

@@ -77,7 +77,13 @@ def list_stocks(
         query = query.filter(
             func.upper(Ticker.symbol).like(like) | func.upper(Ticker.name).like(like)
         )
-    tickers = query.all()
+    if sort == "market_cap":
+        query = query.order_by(Ticker.market_cap.desc().nullslast(), Ticker.symbol)
+        tickers = query.limit(limit).all()
+    elif sort == "symbol":
+        tickers = query.order_by(Ticker.symbol).limit(limit).all()
+    else:
+        tickers = query.all()
     md = get_market_data(db)
     quotes = _all_quotes(db, md)
     rows = [_row(t, quotes.get(t.symbol)) for t in tickers]
@@ -87,8 +93,8 @@ def list_stocks(
         rows.sort(key=lambda r: r.symbol)
     elif sort == "price":
         rows.sort(key=lambda r: r.price if r.price is not None else -1e18, reverse=True)
-    else:  # market_cap
-        rows.sort(key=lambda r: (r.market_cap or -1.0, r.symbol), reverse=True)
+    elif sort == "market_cap":
+        pass  # already sorted and limited by Postgres
     return rows[:limit]
 
 
