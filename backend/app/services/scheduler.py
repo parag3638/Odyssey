@@ -1,5 +1,5 @@
 from apscheduler.schedulers.background import BackgroundScheduler
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 _scheduler: BackgroundScheduler | None = None
 
@@ -102,11 +102,62 @@ def refresh_market_cache_job():
         major_movers = build_major_movers(major_tickers, quotes)
         set_cached_many(db, {"quotes_all": quotes, "major_movers": major_movers})
         from app.routers.dashboard import clear_dashboard_cache
+        from app.routers.stocks import warm_stocks_catalog_cache
         clear_dashboard_cache()
+        warm_stocks_catalog_cache(db)
     except Exception:
         db.rollback()
     finally:
         db.close()
+
+
+def refresh_fundamentals_cache_job():
+    """Warm stale fundamentals in market-cap order without blocking a request."""
+    from app.db import get_sessionmaker
+    from app.models import MarketCache, Ticker
+    from app.services.fundamentals import (
+        FUNDAMENTALS_BATCH_SIZE,
+        FUNDAMENTALS_TTL_SEC,
+        refresh_fundamentals_symbols,
+    )
+
+    db = get_sessionmaker()()
+    try:
+        symbols = [
+            symbol for (symbol,) in (
+                db.query(Ticker.symbol)
+                .order_by(Ticker.market_cap.desc().nullslast(), Ticker.symbol)
+                .all()
+            )
+        ]
+        cached_at = {
+            key.removeprefix("metrics:"): fetched_at
+            for key, fetched_at in (
+                db.query(MarketCache.key, MarketCache.fetched_at)
+                .filter(MarketCache.key.like("metrics:%"))
+                .all()
+            )
+        }
+    finally:
+        db.close()
+
+    cutoff = datetime.now(timezone.utc) - timedelta(seconds=FUNDAMENTALS_TTL_SEC)
+    stale = []
+    for symbol in symbols:
+        fetched_at = cached_at.get(symbol)
+        if fetched_at is None:
+            stale.append(symbol)
+            continue
+        if fetched_at.tzinfo is None:
+            fetched_at = fetched_at.replace(tzinfo=timezone.utc)
+        if fetched_at < cutoff:
+            stale.append(symbol)
+    refresh_fundamentals_symbols(stale[:FUNDAMENTALS_BATCH_SIZE])
+
+
+def refresh_earnings_calendar_job():
+    from app.services.fundamentals import refresh_earnings_calendar
+    refresh_earnings_calendar()
 
 
 def start_scheduler():
@@ -122,6 +173,22 @@ def start_scheduler():
         "interval",
         seconds=240,
         id="refresh_market_cache",
+        next_run_time=datetime.now(timezone.utc),
+        **common,
+    )
+    _scheduler.add_job(
+        refresh_fundamentals_cache_job,
+        "interval",
+        seconds=60,
+        id="refresh_fundamentals_cache",
+        next_run_time=datetime.now(timezone.utc),
+        **common,
+    )
+    _scheduler.add_job(
+        refresh_earnings_calendar_job,
+        "interval",
+        seconds=12 * 3600,
+        id="refresh_earnings_calendar",
         next_run_time=datetime.now(timezone.utc),
         **common,
     )

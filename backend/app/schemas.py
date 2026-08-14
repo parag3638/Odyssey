@@ -165,6 +165,18 @@ class IndustryOut(BaseModel):
     count: int
 
 
+class StockFinderRow(StockRow):
+    metrics: StockMetrics = Field(default_factory=StockMetrics)
+
+
+class StocksBootstrapOut(BaseModel):
+    stocks: list[StockFinderRow] = Field(default_factory=list)
+    industries: list[IndustryOut] = Field(default_factory=list)
+    total: int = 0
+    page: int = 1
+    page_size: int = 20
+
+
 class Citation(BaseModel):
     """A source an AI summary is grounded in — rendered as a link chip."""
     id: str

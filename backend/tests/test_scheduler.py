@@ -31,3 +31,42 @@ def test_copied_hashes_for_bot_reads_activity_log():
             return _Q()
 
     assert copied_hashes_for_bot(_DB(), bot_id=1) == {"h1", "h2"}
+
+
+def test_fundamentals_warmer_prioritizes_uncached_largest_companies(client, monkeypatch):
+    from datetime import datetime, timezone
+
+    from app.db import get_sessionmaker
+    from app.models import MarketCache, Ticker
+    from app.services import fundamentals
+    from app.services.scheduler import refresh_fundamentals_cache_job
+
+    db = get_sessionmaker()()
+    try:
+        db.add_all(
+            [
+                Ticker(symbol=f"T{i:02}", name=f"Ticker {i}", market_cap=(10 - i) * 1_000)
+                for i in range(10)
+            ]
+        )
+        db.add(
+            MarketCache(
+                key="metrics:T00",
+                data={"peTTM": 20},
+                fetched_at=datetime.now(timezone.utc),
+            )
+        )
+        db.commit()
+    finally:
+        db.close()
+
+    captured = []
+    monkeypatch.setattr(
+        fundamentals,
+        "refresh_fundamentals_symbols",
+        lambda symbols: captured.extend(symbols),
+    )
+
+    refresh_fundamentals_cache_job()
+
+    assert captured == [f"T{i:02}" for i in range(1, 9)]

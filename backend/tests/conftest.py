@@ -25,7 +25,9 @@ def client():
     Base.metadata.drop_all(engine)
     Base.metadata.create_all(engine)
     from app.routers.dashboard import clear_dashboard_cache
+    from app.routers.stocks import clear_stocks_catalog_cache
     clear_dashboard_cache()
+    clear_stocks_catalog_cache()
 
     TestSession = sessionmaker(bind=engine, expire_on_commit=False)
 

@@ -1,132 +1,51 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getStockMetrics, type StockMetrics, type StockRow } from "@/lib/api";
+import { type StockRow } from "@/lib/api";
 import { compactNum, pct } from "@/lib/format";
 import {
   DataTable,
   type Column,
-  Skeleton,
   Tag,
   TickerLogo,
 } from "@/components/ui";
 
-type Sort = { key: string; dir: "asc" | "desc" };
-type MetricsMap = Record<string, StockMetrics>;
-
-const NEG = -Infinity;
+export type StockFinderSort = { key: string; dir: "asc" | "desc" };
 
 /* Stock-finder table (reference #9): the full screener column set
    — Company · Sector · Rev. · Rev. (Y/Y) · P/E · Earnings · EPS · EV/Sales ·
-   Mkt cap · 1D return — over the live universe. Fundamentals (everything past
-   Sector that isn't price-derived) come from Finnhub and are fetched per page
-   so a load stays within the free-tier rate limit; cells skeleton until their
-   symbol resolves, then show the value or "—". Sort + pagination are owned here
-   so we know which symbols a page needs. */
+   Mkt cap · 1D return — over the live universe. The backend embeds cached
+   fundamentals in each paginated row, so rendering never waits on Finnhub. */
 export function StockFinderTable({
   rows,
+  total,
+  page,
+  pageCount,
+  sort,
+  onPageChange,
+  onSortChange,
   loading,
   empty = "No stocks match your filters.",
   pageSize = 20,
 }: {
   rows: StockRow[];
+  total: number;
+  page: number;
+  pageCount: number;
+  sort: StockFinderSort;
+  onPageChange: (page: number) => void;
+  onSortChange: (sort: StockFinderSort) => void;
   loading?: boolean;
   empty?: string;
   pageSize?: number;
 }) {
   const router = useRouter();
-  const [sort, setSort] = useState<Sort>({ key: "company", dir: "asc" });
-  const [page, setPage] = useState(0);
-  const [metrics, setMetrics] = useState<MetricsMap>({});
-  const requested = useRef<Set<string>>(new Set());
-
-  const sorted = useMemo(() => {
-    const dir = sort.dir === "asc" ? 1 : -1;
-    const val = (r: StockRow): number | string => {
-      const m = metrics[r.symbol];
-      switch (sort.key) {
-        case "company":
-          return r.symbol;
-        case "sector":
-          return r.sector || "";
-        case "ret1d":
-          return r.change_pct ?? NEG;
-        case "mktCap":
-          return m?.marketCap ?? r.market_cap ?? NEG;
-        case "rev":
-          return m?.revenue ?? NEG;
-        case "revYoY":
-          return m?.revYoY ?? NEG;
-        case "pe":
-          return m?.pe ?? NEG;
-        case "eps":
-          return m?.eps ?? NEG;
-        case "evSales":
-          return m?.evSales ?? NEG;
-        default:
-          return r.symbol;
-      }
-    };
-    return [...rows].sort((a, b) => {
-      const va = val(a);
-      const vb = val(b);
-      if (typeof va === "number" && typeof vb === "number") return (va - vb) * dir;
-      return String(va).localeCompare(String(vb)) * dir;
-    });
-  }, [rows, sort, metrics]);
-
-  const pageCount = Math.max(1, Math.ceil(sorted.length / pageSize));
-  const curPage = Math.min(page, pageCount - 1);
-  const pageRows = useMemo(
-    () => sorted.slice(curPage * pageSize, curPage * pageSize + pageSize),
-    [sorted, curPage, pageSize],
-  );
-
-  // Jump back to the first page when the universe changes (e.g. a search filter
-  // narrows `rows`). Adjusting state during render is React's recommended way to
-  // react to a prop change — no cascading effect.
-  const [prevRows, setPrevRows] = useState(rows);
-  if (rows !== prevRows) {
-    setPrevRows(rows);
-    setPage(0);
-  }
-
-  // Enrich the visible page's symbols (those not already requested).
-  //
-  // No "cancelled" guard here on purpose: `pageRows` legitimately changes
-  // reference more than once during initial load (as `rows` populates from
-  // listStocks() and `pageSize` settles from the fill-to-height calc), each
-  // re-running this effect. A cancelled-on-cleanup guard would discard an
-  // *earlier* invocation's successful result once a *later* one supersedes
-  // it — but `requested.current` was already marked for those symbols in
-  // that earlier invocation, so nothing retries them either. Net effect:
-  // permanently orphaned symbols with no data, deterministically, on every
-  // load. Applying a symbol-keyed metrics merge is always safe regardless
-  // of which render triggered the fetch, so there's nothing to guard here.
-  useEffect(() => {
-    const need = pageRows.map((r) => r.symbol).filter((s) => !requested.current.has(s));
-    if (need.length === 0) return;
-    need.forEach((s) => requested.current.add(s));
-    getStockMetrics(need)
-      .then((res) => {
-        setMetrics((prev) => ({ ...prev, ...res }));
-      })
-      .catch(() => {
-        // allow a later retry if the request failed
-        need.forEach((s) => requested.current.delete(s));
-      });
-  }, [pageRows]);
-
-  // A metric cell: skeleton until the symbol resolves, then value or "—".
-  const cell = (sym: string, v: number | null | undefined, fmt: (n: number) => string) => {
-    if (!(sym in metrics)) return <Skeleton w={46} h={11} style={{ marginLeft: "auto" }} />;
+  const cell = (v: number | null | undefined, fmt: (n: number) => string) => {
     if (v == null) return <span className="faint">—</span>;
     return <span className="tnum">{fmt(v)}</span>;
   };
 
-  const signed = (sym: string, v: number | null | undefined) => {
-    if (!(sym in metrics)) return <Skeleton w={56} h={11} style={{ marginLeft: "auto" }} />;
+  const signed = (v: number | null | undefined) => {
     if (v == null) return <span className="faint">—</span>;
     return <span className={`tnum ${v >= 0 ? "pos" : "neg"}`}>{pct(v)}</span>;
   };
@@ -138,7 +57,7 @@ export function StockFinderTable({
       key: "company",
       header: (
         <>
-          Company <span className="faint">· {rows.length}</span>
+          Company <span className="faint">· {total}</span>
         </>
       ),
       align: "l",
@@ -164,28 +83,26 @@ export function StockFinderTable({
       key: "rev",
       header: "Rev.",
       sortable: true,
-      render: (r) => cell(r.symbol, metrics[r.symbol]?.revenue, compactNum),
+      render: (r) => cell(r.metrics?.revenue, compactNum),
     },
     {
       key: "revYoY",
       header: "Rev. (Y/Y)",
       sortable: true,
-      render: (r) => signed(r.symbol, metrics[r.symbol]?.revYoY),
+      render: (r) => signed(r.metrics?.revYoY),
     },
     {
       key: "pe",
       header: "P/E",
       sortable: true,
-      render: (r) => cell(r.symbol, metrics[r.symbol]?.pe, (n) => n.toFixed(2)),
+      render: (r) => cell(r.metrics?.pe, (n) => n.toFixed(2)),
     },
     {
       key: "earnings",
       header: "Earnings",
       render: (r) =>
-        !(r.symbol in metrics) ? (
-          <Skeleton w={52} h={11} style={{ marginLeft: "auto" }} />
-        ) : metrics[r.symbol]?.earnings ? (
-          <span>{metrics[r.symbol].earnings}</span>
+        r.metrics?.earnings ? (
+          <span>{r.metrics.earnings}</span>
         ) : (
           <span className="faint">—</span>
         ),
@@ -194,24 +111,20 @@ export function StockFinderTable({
       key: "eps",
       header: "EPS",
       sortable: true,
-      render: (r) => cell(r.symbol, metrics[r.symbol]?.eps, (n) => n.toFixed(2)),
+      render: (r) => cell(r.metrics?.eps, (n) => n.toFixed(2)),
     },
     {
       key: "evSales",
       header: "EV/Sales",
       sortable: true,
-      render: (r) => cell(r.symbol, metrics[r.symbol]?.evSales, (n) => n.toFixed(2)),
+      render: (r) => cell(r.metrics?.evSales, (n) => n.toFixed(2)),
     },
     {
       key: "mktCap",
       header: "Mkt cap",
       sortable: true,
       render: (r) => {
-        const v = metrics[r.symbol]?.marketCap ?? r.market_cap;
-        // mkt cap can come from the row too, so only skeleton when neither is known yet
-        if (v == null && !(r.symbol in metrics)) {
-          return <Skeleton w={56} h={11} style={{ marginLeft: "auto" }} />;
-        }
+        const v = r.metrics?.marketCap ?? r.market_cap;
         return v == null ? (
           <span className="faint">—</span>
         ) : (
@@ -235,21 +148,18 @@ export function StockFinderTable({
   return (
     <DataTable<StockRow>
       columns={columns}
-      rows={pageRows}
+      rows={rows}
       rowKey={(r) => r.symbol}
       loading={loading}
       skeletonRows={Math.min(pageSize, 12)}
       onRowClick={(r) => router.push(`/stocks/${r.symbol}`)}
       empty={empty}
       sort={sort}
-      onSortChange={(s) => {
-        setSort(s);
-        setPage(0); // re-sorting should jump back to the top
-      }}
-      page={curPage}
+      onSortChange={onSortChange}
+      page={page}
       pageCount={pageCount}
-      total={sorted.length}
-      onPageChange={setPage}
+      total={total}
+      onPageChange={onPageChange}
     />
   );
 }

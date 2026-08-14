@@ -11,8 +11,9 @@ import { useEffect, useState, type RefObject } from "react";
  *  skeleton being replaced by real rows, since skeleton and real row
  *  heights can differ and a resize-only listener would miss that entirely,
  *  locking in a stale (usually too-small) count from before data loaded. */
-export function useFillRows(ref: RefObject<HTMLDivElement | null>) {
+export function useFillRowsState(ref: RefObject<HTMLDivElement | null>) {
   const [rows, setRows] = useState(15);
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
     // Pager row (~54px) + a little breathing room below it — thead is
@@ -31,6 +32,7 @@ export function useFillRows(ref: RefObject<HTMLDivElement | null>) {
       const rowH = rowEl?.getBoundingClientRect().height || 52;
       const avail = window.innerHeight - top - theadH - PAGER_AND_MARGIN;
       setRows(Math.max(6, Math.floor(avail / rowH)));
+      setReady(true);
     };
     const schedule = () => {
       cancelAnimationFrame(raf);
@@ -53,5 +55,9 @@ export function useFillRows(ref: RefObject<HTMLDivElement | null>) {
     };
   }, [ref]);
 
-  return rows;
+  return { rows, ready };
+}
+
+export function useFillRows(ref: RefObject<HTMLDivElement | null>) {
+  return useFillRowsState(ref).rows;
 }

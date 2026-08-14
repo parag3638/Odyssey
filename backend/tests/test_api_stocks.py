@@ -1,4 +1,5 @@
 from app.routers import stocks as stocks_router
+from datetime import datetime, timezone
 
 
 class FakeMD:
@@ -79,6 +80,86 @@ def test_industries(client):
     _patch(); _seed()
     inds = {x["industry"] for x in client.get("/stocks/industries").json()}
     assert "Banks" in inds and "Consumer Electronics" in inds
+
+
+def test_stocks_bootstrap_paginates_sorts_and_embeds_cached_metrics(client):
+    from app.db import get_sessionmaker
+    from app.models import MarketCache
+
+    _patch(); _seed()
+    db = get_sessionmaker()()
+    try:
+        db.add_all(
+            [
+                MarketCache(
+                    key="metrics:AAPL",
+                    data={"peTTM": 28.5, "marketCapitalization": 2_800_000.0},
+                    fetched_at=datetime.now(timezone.utc),
+                ),
+                MarketCache(
+                    key="metrics:JPM",
+                    data={"peTTM": 12.0, "marketCapitalization": 700_000.0},
+                    fetched_at=datetime.now(timezone.utc),
+                ),
+                MarketCache(
+                    key="quotes_all",
+                    data={"AAPL": {"price": 220.0, "change_pct": 2.0}},
+                    fetched_at=datetime.now(timezone.utc),
+                ),
+            ]
+        )
+        db.commit()
+    finally:
+        db.close()
+
+    response = client.get("/stocks/bootstrap?page_size=6&sort=pe&direction=asc")
+    assert response.status_code == 200
+    body = response.json()
+    assert body["total"] == 2
+    assert [row["symbol"] for row in body["stocks"]] == ["JPM", "AAPL"]
+    assert body["stocks"][1]["metrics"]["pe"] == 28.5
+    assert body["stocks"][1]["price"] == 220.0
+    assert {row["industry"] for row in body["industries"]} == {
+        "Banks", "Consumer Electronics",
+    }
+    etag = response.headers["ETag"]
+    assert client.get(
+        "/stocks/bootstrap?page_size=6&sort=pe&direction=asc",
+        headers={"If-None-Match": etag},
+    ).status_code == 304
+
+
+def test_stocks_bootstrap_applies_global_screener_filters(client):
+    from app.db import get_sessionmaker
+    from app.models import MarketCache
+
+    _patch(); _seed()
+    db = get_sessionmaker()()
+    try:
+        db.add_all(
+            [
+                MarketCache(
+                    key="metrics:AAPL",
+                    data={"peTTM": 28.5},
+                    fetched_at=datetime.now(timezone.utc),
+                ),
+                MarketCache(
+                    key="metrics:JPM",
+                    data={"peTTM": 12.0},
+                    fetched_at=datetime.now(timezone.utc),
+                ),
+            ]
+        )
+        db.commit()
+    finally:
+        db.close()
+
+    response = client.get(
+        "/stocks/bootstrap",
+        params={"screen_filters": '[{"field":"pe","op":"<","value":"20"}]'},
+    )
+    assert response.status_code == 200
+    assert [row["symbol"] for row in response.json()["stocks"]] == ["JPM"]
 
 
 def test_stock_detail(client):

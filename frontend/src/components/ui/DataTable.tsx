@@ -174,7 +174,7 @@ export function DataTable<Row>({
                       // match the real first cell (logo + label) so skeleton rows
                       // are the same height as loaded rows — keeps columns balanced.
                       <span style={{ display: "inline-flex", alignItems: "center", gap: 10, lineHeight: 0 }}>
-                        <Skeleton w={30} h={30} r={15} />
+                        <Skeleton w={22} h={22} r={11} />
                         <Skeleton w={104} h={12} />
                       </span>
                     ) : (

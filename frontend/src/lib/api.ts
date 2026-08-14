@@ -96,6 +96,44 @@ function fromSnapshot(snap: Snapshot, path: string): unknown {
     const limit = Number(qparams(path).get("limit") ?? 50);
     return snap.activity.slice(0, limit);
   }
+  if (path.startsWith("/stocks/bootstrap")) {
+    const qs = qparams(path);
+    const sector = qs.get("sector");
+    const industry = qs.get("industry");
+    const q = qs.get("q")?.toUpperCase();
+    const page = Math.max(1, Number(qs.get("page") ?? 1));
+    const pageSize = Math.max(6, Number(qs.get("page_size") ?? 20));
+    let rows = snap.stocks.map((row) => ({
+      ...row,
+      metrics: snap.metrics[row.symbol] ?? emptyStockMetrics(),
+    }));
+    if (sector) rows = rows.filter((row) => row.sector === sector);
+    if (industry) rows = rows.filter((row) => row.industry === industry);
+    if (q) {
+      rows = rows.filter(
+        (row) => row.symbol.includes(q) || row.name.toUpperCase().includes(q),
+      );
+    }
+    const counts = new Map<string, IndustryRow>();
+    for (const row of snap.stocks) {
+      if (!row.industry) continue;
+      const key = `${row.sector}\u0000${row.industry}`;
+      const current = counts.get(key);
+      counts.set(key, {
+        sector: row.sector,
+        industry: row.industry,
+        count: (current?.count ?? 0) + 1,
+      });
+    }
+    const start = (page - 1) * pageSize;
+    return {
+      stocks: rows.slice(start, start + pageSize),
+      industries: [...counts.values()].sort((a, b) => b.count - a.count),
+      total: rows.length,
+      page,
+      page_size: pageSize,
+    } satisfies StocksBootstrap;
+  }
   if (path.startsWith("/stocks/metrics")) {
     const syms = qparams(path).get("symbols")?.split(",").filter(Boolean) ?? [];
     const out: Record<string, StockMetrics> = {};
@@ -149,11 +187,15 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const method = (init?.method ?? "GET").toUpperCase();
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), REQUEST_TIMEOUT_MS);
+  const headers = new Headers(init?.headers);
+  if (init?.body != null && !headers.has("Content-Type")) {
+    headers.set("Content-Type", "application/json");
+  }
   let res: Response;
   try {
     res = await fetch(`${API_BASE}${path}`, {
-      headers: { "Content-Type": "application/json" },
       ...init,
+      headers,
       signal: ctrl.signal,
     });
     _backendReachable = true;
@@ -600,6 +642,7 @@ export interface StockRow {
   price: number | null;
   change: number | null;
   change_pct: number | null;
+  metrics?: StockMetrics;
 }
 export interface StockDetailData extends StockRow {
   exchange: string;
@@ -617,6 +660,16 @@ export interface StockMetrics {
 }
 export type StockMetricsMap = Record<string, StockMetrics>;
 
+const emptyStockMetrics = (): StockMetrics => ({
+  pe: null,
+  eps: null,
+  revenue: null,
+  revYoY: null,
+  evSales: null,
+  marketCap: null,
+  earnings: null,
+});
+
 /** Fundamentals for a batch of symbols (current page only). Each symbol is
     cached 6h server-side; degrades to nulls without a Finnhub key. */
 export function getStockMetrics(symbols: string[]): Promise<StockMetricsMap> {
@@ -629,6 +682,13 @@ export interface IndustryRow {
   industry: string;
   sector: string;
   count: number;
+}
+export interface StocksBootstrap {
+  stocks: StockRow[];
+  industries: IndustryRow[];
+  total: number;
+  page: number;
+  page_size: number;
 }
 export interface HistoryPoint {
   t: string;
@@ -697,6 +757,30 @@ export function listStocks(params?: {
   if (params?.limit) u.set("limit", String(params.limit));
   const qs = u.toString();
   return request<StockRow[]>(`/stocks${qs ? `?${qs}` : ""}`);
+}
+export function getStocksBootstrap(params: {
+  page: number;
+  pageSize: number;
+  industry?: string;
+  sector?: string;
+  q?: string;
+  sort: string;
+  direction: "asc" | "desc";
+  screenFilters?: ScreenerFilter[];
+}): Promise<StocksBootstrap> {
+  const u = new URLSearchParams({
+    page: String(params.page),
+    page_size: String(params.pageSize),
+    sort: params.sort,
+    direction: params.direction,
+  });
+  if (params.industry) u.set("industry", params.industry);
+  if (params.sector) u.set("sector", params.sector);
+  if (params.q) u.set("q", params.q);
+  if (params.screenFilters?.length) {
+    u.set("screen_filters", JSON.stringify(params.screenFilters));
+  }
+  return request<StocksBootstrap>(`/stocks/bootstrap?${u.toString()}`);
 }
 export function getStockIndustries(): Promise<IndustryRow[]> {
   return request<IndustryRow[]>("/stocks/industries");
