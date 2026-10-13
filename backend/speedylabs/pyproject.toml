@@ -1,0 +1,56 @@
+[project]
+name = "speedy-onboard-backend"
+version = "0.1.0"
+description = "Rebate data onboarding accelerator — backend"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "fastapi",
+    "uvicorn[standard]",
+    "pydantic",
+    "pydantic-settings",
+    "sqlalchemy[asyncio]",
+    "alembic",
+    "psycopg[binary,pool]",
+    "procrastinate",
+    "pandas",
+    "pandas-stubs",
+    "structlog",
+    "httpx",
+    "openai",
+    "python-multipart",
+]
+
+[project.scripts]
+speedy-generate = "src.generator.cli:main"
+
+[dependency-groups]
+dev = [
+    "ruff",
+    "pyright",
+    "pytest",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "UP", "B", "A", "C4", "SIM", "RUF"]
+
+[tool.ruff.lint.per-file-ignores]
+# N818 wants an `Error` suffix on exception names. BACKEND.md §9 names these classes
+# explicitly - "typed app errors (`NotFound`, `Forbidden`, `Conflict`, `RuleBroken`)" -
+# and the rulebook outranks linter defaults ("this file > plugins > framework defaults").
+"src/lib/errors.py" = ["N818"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests", "src"]
+# Money and time are exact; a test that depends on wall-clock drift is a broken test.
+filterwarnings = ["error"]

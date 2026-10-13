@@ -1,0 +1,236 @@
+{
+  "columns": [
+    {
+      "canonical": "invoice_no",
+      "end": 10,
+      "filler": false,
+      "kind": "text",
+      "name": "IVHDR01",
+      "note": "Invoice header number",
+      "order": 0,
+      "start": 1,
+      "width": 10
+    },
+    {
+      "canonical": null,
+      "end": 18,
+      "filler": false,
+      "kind": "text",
+      "name": "CUSTNO",
+      "note": "Ship-to account - NOT the bill-to customer",
+      "order": 1,
+      "start": 11,
+      "width": 8
+    },
+    {
+      "canonical": "invoice_date",
+      "end": 25,
+      "filler": false,
+      "kind": "cyymmdd",
+      "name": "IVPSTDT",
+      "note": "Invoice posting date, CYYMMDD",
+      "order": 2,
+      "start": 19,
+      "width": 7
+    },
+    {
+      "canonical": null,
+      "end": 29,
+      "filler": true,
+      "kind": "filler_num",
+      "name": "FLD017",
+      "note": "Reserved",
+      "order": 3,
+      "start": 26,
+      "width": 4
+    },
+    {
+      "canonical": "customer_id",
+      "end": 37,
+      "filler": false,
+      "kind": "text",
+      "name": "BILTNO",
+      "note": "Bill-to account - the customer of record",
+      "order": 4,
+      "start": 30,
+      "width": 8
+    },
+    {
+      "canonical": "dist_item_id",
+      "end": 49,
+      "filler": false,
+      "kind": "text",
+      "name": "ITMNBR",
+      "note": "Distributor item number",
+      "order": 5,
+      "start": 38,
+      "width": 12
+    },
+    {
+      "canonical": "qty",
+      "end": 58,
+      "filler": false,
+      "kind": "dec2",
+      "name": "SHPUNT",
+      "note": "Units shipped, implied 2 decimals",
+      "order": 6,
+      "start": 50,
+      "width": 9
+    },
+    {
+      "canonical": "uom",
+      "end": 61,
+      "filler": false,
+      "kind": "text",
+      "name": "UMCODE",
+      "note": "Unit of measure code: CS, EA or LB",
+      "order": 7,
+      "start": 59,
+      "width": 3
+    },
+    {
+      "canonical": "customer_name",
+      "end": 91,
+      "filler": false,
+      "kind": "text",
+      "name": "BILTNM",
+      "note": "Bill-to account name",
+      "order": 8,
+      "start": 62,
+      "width": 30
+    },
+    {
+      "canonical": null,
+      "end": 97,
+      "filler": true,
+      "kind": "filler_code",
+      "name": "RSRVD1",
+      "note": "Reserved",
+      "order": 9,
+      "start": 92,
+      "width": 6
+    },
+    {
+      "canonical": "unit_price",
+      "end": 108,
+      "filler": false,
+      "kind": "dec4",
+      "name": "SELPRC",
+      "note": "Selling price per unit, implied 4 decimals",
+      "order": 10,
+      "start": 98,
+      "width": 11
+    },
+    {
+      "canonical": "mfr_item_code",
+      "end": 122,
+      "filler": false,
+      "kind": "text",
+      "name": "MFGPRT",
+      "note": "Manufacturer part number",
+      "order": 11,
+      "start": 109,
+      "width": 14
+    },
+    {
+      "canonical": "ext_amount",
+      "end": 135,
+      "filler": false,
+      "kind": "dec2",
+      "name": "LINAMT",
+      "note": "Extended line amount, implied 2 decimals",
+      "order": 12,
+      "start": 123,
+      "width": 13
+    },
+    {
+      "canonical": null,
+      "end": 139,
+      "filler": true,
+      "kind": "filler_blank",
+      "name": "FLD023",
+      "note": "Reserved",
+      "order": 13,
+      "start": 136,
+      "width": 4
+    },
+    {
+      "canonical": "brand_manufacturer",
+      "end": 145,
+      "filler": false,
+      "kind": "text",
+      "name": "CLSCD1",
+      "note": "Class code 1 - encodes the brand owner",
+      "order": 14,
+      "start": 140,
+      "width": 6
+    },
+    {
+      "canonical": "catch_weight_lbs",
+      "end": 155,
+      "filler": false,
+      "kind": "dec2",
+      "name": "SHPWGT",
+      "note": "Shipped weight, implied 2 decimals",
+      "order": 15,
+      "start": 146,
+      "width": 10
+    },
+    {
+      "canonical": "invoice_vendor",
+      "end": 163,
+      "filler": false,
+      "kind": "text",
+      "name": "REMTNO",
+      "note": "Remit-to vendor number on the invoice",
+      "order": 16,
+      "start": 156,
+      "width": 8
+    },
+    {
+      "canonical": "pack_size",
+      "end": 169,
+      "filler": false,
+      "kind": "int",
+      "name": "CSEMUL",
+      "note": "Case multiplier - eaches per case",
+      "order": 17,
+      "start": 164,
+      "width": 6
+    },
+    {
+      "canonical": "is_deviated",
+      "end": 170,
+      "filler": false,
+      "kind": "flag",
+      "name": "ALWFLG",
+      "note": "Off-invoice allowance flag: Y or N",
+      "order": 18,
+      "start": 170,
+      "width": 1
+    },
+    {
+      "canonical": null,
+      "end": 175,
+      "filler": true,
+      "kind": "filler_num",
+      "name": "FLD041",
+      "note": "Reserved",
+      "order": 19,
+      "start": 171,
+      "width": 5
+    },
+    {
+      "canonical": "deviated_price",
+      "end": 186,
+      "filler": false,
+      "kind": "dec4",
+      "name": "ALWPRC",
+      "note": "Allowance (deviated) unit price, implied 4 dec",
+      "order": 20,
+      "start": 176,
+      "width": 11
+    }
+  ],
+  "recordWidth": 186
+}

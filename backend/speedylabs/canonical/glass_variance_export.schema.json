@@ -1,0 +1,237 @@
+{
+  "$id": "https://speedy.example/schemas/glass_variance_export.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "A proposed shape for feeding attributed rebate variances into a downstream root-cause tool. Not a contract agreed with any such tool.",
+  "properties": {
+    "canonicalSchemaVersion": {
+      "type": "string"
+    },
+    "currency": {
+      "type": "string"
+    },
+    "customerName": {
+      "type": "string"
+    },
+    "engine": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "standIn": {
+          "type": "boolean"
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "version",
+        "standIn"
+      ],
+      "type": "object"
+    },
+    "explainedPct": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "glassExportVersion": {
+      "type": "string"
+    },
+    "ingestRunId": {
+      "type": "string"
+    },
+    "legacySourceFile": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "netVarianceAmount": {
+      "pattern": "^-?\\d+\\.\\d{2}$",
+      "type": "string"
+    },
+    "periodEnd": {
+      "format": "date",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "periodStart": {
+      "format": "date",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "totalVarianceAmount": {
+      "pattern": "^-?\\d+\\.\\d{2}$",
+      "type": "string"
+    },
+    "unexplainedAmount": {
+      "pattern": "^-?\\d+\\.\\d{2}$",
+      "type": "string"
+    },
+    "variances": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "byCause": {
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "amount": {
+                  "pattern": "^-?\\d+\\.\\d{2}$",
+                  "type": "string"
+                },
+                "rootCause": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "rootCause",
+                "amount"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "calculatedAmount": {
+            "pattern": "^-?\\d+\\.\\d{2}$",
+            "type": "string"
+          },
+          "legacyAmount": {
+            "pattern": "^-?\\d+\\.\\d{2}$",
+            "type": "string"
+          },
+          "periodEnd": {
+            "format": "date",
+            "type": "string"
+          },
+          "periodStart": {
+            "format": "date",
+            "type": "string"
+          },
+          "presence": {
+            "type": "string"
+          },
+          "programExternalRef": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "programName": {
+            "type": "string"
+          },
+          "residueAmount": {
+            "pattern": "^-?\\d+\\.\\d{2}$",
+            "type": "string"
+          },
+          "rootCause": {
+            "type": "string"
+          },
+          "sourceLineCount": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "sourceLines": {
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "contributionAmount": {
+                  "pattern": "^-?\\d+\\.\\d{2}$",
+                  "type": "string"
+                },
+                "distItemId": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "estimated": {
+                  "type": "boolean"
+                },
+                "evidence": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "invoiceDate": {
+                  "format": "date",
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "invoiceNo": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "rootCause": {
+                  "type": "string"
+                },
+                "sourceRowNumber": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                }
+              },
+              "required": [
+                "rootCause",
+                "contributionAmount"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "sourceLinesTruncated": {
+            "type": "boolean"
+          },
+          "varianceAmount": {
+            "pattern": "^-?\\d+\\.\\d{2}$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "programExternalRef",
+          "programName",
+          "periodStart",
+          "periodEnd",
+          "legacyAmount",
+          "calculatedAmount",
+          "varianceAmount",
+          "rootCause",
+          "byCause",
+          "sourceLines",
+          "sourceLineCount",
+          "sourceLinesTruncated"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "glassExportVersion",
+    "customerName",
+    "ingestRunId",
+    "engine",
+    "explainedPct",
+    "totalVarianceAmount",
+    "netVarianceAmount",
+    "unexplainedAmount",
+    "variances"
+  ],
+  "title": "Attributed variance export",
+  "type": "object"
+}

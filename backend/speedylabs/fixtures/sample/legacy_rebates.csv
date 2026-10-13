@@ -1,0 +1,19 @@
+PROGRAM,PROGRAM_NAME,PERIOD,BASIS_UNITS,REBATE_PAID
+PG-BLC-LB,Bayline pound billback,2026-01,47255.94,8930.71
+PG-BLC-LB,Bayline pound billback,2026-02,45831.65,8481.29
+PG-BLC-LB,Bayline pound billback,2026-03,36639.99,6749.48
+PG-BLC-LB,Bayline pound billback,2026-04,43965.54,8359.67
+PG-BLC-LB,Bayline pound billback,2026-05,46572.73,8608.26
+PG-BLC-LB,Bayline pound billback,2026-06,49503.85,9347.10
+PG-CPC-CS,Cascade case volume,2026-01,27127.00,24579.90
+PG-CPC-CS,Cascade case volume,2026-02,25225.00,22803.30
+PG-CPC-CS,Cascade case volume,2026-03,20466.00,17415.90
+PG-CPC-CS,Cascade case volume,2026-04,27595.00,26045.10
+PG-CPC-CS,Cascade case volume,2026-05,27080.00,24542.10
+PG-CPC-CS,Cascade case volume,2026-06,27272.00,24704.10
+PG-NVF-CS,Northvale case volume,2026-01,29829.00,37526.25
+PG-NVF-CS,Northvale case volume,2026-02,25999.00,32801.25
+PG-NVF-CS,Northvale case volume,2026-03,21196.00,24746.25
+PG-NVF-CS,Northvale case volume,2026-04,27651.00,36791.25
+PG-NVF-CS,Northvale case volume,2026-05,26474.00,33181.25
+PG-NVF-CS,Northvale case volume,2026-06,28692.00,36070.00

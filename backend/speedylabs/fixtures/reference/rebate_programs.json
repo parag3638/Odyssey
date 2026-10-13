@@ -1,0 +1,40 @@
+{
+  "legacyPeriodCutoffDay": "2026-03-31",
+  "note": "Seeded rebate programs for the demo distributor. Fictional commercial terms, generated from the same seed as the invoice fixtures. Loaded by scripts/seed_demo.py into rebate_programs.",
+  "programs": [
+    {
+      "brandManufacturer": "Bayline Creamery",
+      "effectiveFrom": "2026-01-01",
+      "effectiveTo": null,
+      "externalRef": "PG-BLC-LB",
+      "kind": "per_lb_billback",
+      "name": "Bayline pound billback",
+      "rate": "0.180000",
+      "redistributorRate": "0.650000",
+      "uomBasis": "LB"
+    },
+    {
+      "brandManufacturer": "Cascade Provision Co",
+      "effectiveFrom": "2026-01-01",
+      "effectiveTo": null,
+      "externalRef": "PG-CPC-CS",
+      "kind": "per_case_volume",
+      "name": "Cascade case volume",
+      "rate": "0.900000",
+      "redistributorRate": "0.650000",
+      "uomBasis": "CS"
+    },
+    {
+      "brandManufacturer": "Northvale Foods",
+      "effectiveFrom": "2026-01-01",
+      "effectiveTo": null,
+      "externalRef": "PG-NVF-CS",
+      "kind": "per_case_volume",
+      "name": "Northvale case volume",
+      "rate": "1.250000",
+      "redistributorRate": "0.650000",
+      "uomBasis": "CS"
+    }
+  ],
+  "seed": 20261003
+}

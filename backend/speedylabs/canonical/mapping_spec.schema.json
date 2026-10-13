@@ -1,0 +1,302 @@
+{
+  "$id": "https://speedy-onboard.example/canonical/mapping_spec/1.0.0",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "How one customer's export of a given format is read: the layout and the canonical mapping, as approved. Every object forbids unknown keys - a key this service does not recognise means the document was written by a different version, which a reader must refuse rather than silently ignore.",
+  "oneOf": [
+    {
+      "$defs": {
+        "FixedWidthSpecLayout": {
+          "additionalProperties": false,
+          "properties": {
+            "encoding": {
+              "title": "Encoding",
+              "type": "string"
+            },
+            "fields": {
+              "items": {
+                "$ref": "#/$defs/SpecField"
+              },
+              "minItems": 1,
+              "title": "Fields",
+              "type": "array"
+            },
+            "footerRowCount": {
+              "minimum": 0,
+              "title": "Footerrowcount",
+              "type": "integer"
+            },
+            "recordWidth": {
+              "minimum": 1,
+              "title": "Recordwidth",
+              "type": "integer"
+            }
+          },
+          "required": [
+            "encoding",
+            "recordWidth",
+            "footerRowCount",
+            "fields"
+          ],
+          "title": "FixedWidthSpecLayout",
+          "type": "object"
+        },
+        "SpecField": {
+          "additionalProperties": false,
+          "description": "One fixed-width field's boundaries, as the spec remembers them.",
+          "properties": {
+            "end": {
+              "minimum": 1,
+              "title": "End",
+              "type": "integer"
+            },
+            "impliedScale": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Impliedscale"
+            },
+            "index": {
+              "minimum": 0,
+              "title": "Index",
+              "type": "integer"
+            },
+            "name": {
+              "minLength": 1,
+              "title": "Name",
+              "type": "string"
+            },
+            "quirks": {
+              "items": {
+                "type": "string"
+              },
+              "title": "Quirks",
+              "type": "array"
+            },
+            "start": {
+              "minimum": 1,
+              "title": "Start",
+              "type": "integer"
+            }
+          },
+          "required": [
+            "index",
+            "name",
+            "start",
+            "end"
+          ],
+          "title": "SpecField",
+          "type": "object"
+        },
+        "SpecMappingEntry": {
+          "additionalProperties": false,
+          "properties": {
+            "sourceColumn": {
+              "title": "Sourcecolumn",
+              "type": "string"
+            },
+            "transform": {
+              "$ref": "#/$defs/SpecTransform"
+            }
+          },
+          "required": [
+            "sourceColumn",
+            "transform"
+          ],
+          "title": "SpecMappingEntry",
+          "type": "object"
+        },
+        "SpecTransform": {
+          "additionalProperties": true,
+          "description": "A transform instruction. Open on purpose - the **kinds** are a closed set validated by\n`mapping/transforms.parse`, which is the one place that knows their parameters, and duplicating\neleven parameter shapes here would be a second definition to keep in step.",
+          "properties": {
+            "kind": {
+              "title": "Kind",
+              "type": "string"
+            }
+          },
+          "required": [
+            "kind"
+          ],
+          "title": "SpecTransform",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "canonicalSchemaVersion": {
+          "title": "Canonicalschemaversion",
+          "type": "string"
+        },
+        "kind": {
+          "const": "fixed_width",
+          "title": "Kind",
+          "type": "string"
+        },
+        "layout": {
+          "$ref": "#/$defs/FixedWidthSpecLayout"
+        },
+        "mapping": {
+          "additionalProperties": {
+            "$ref": "#/$defs/SpecMappingEntry"
+          },
+          "minProperties": 1,
+          "title": "Mapping",
+          "type": "object"
+        }
+      },
+      "required": [
+        "canonicalSchemaVersion",
+        "kind",
+        "layout",
+        "mapping"
+      ],
+      "title": "FixedWidthSpecDocument",
+      "type": "object"
+    },
+    {
+      "$defs": {
+        "CsvSpecLayout": {
+          "additionalProperties": false,
+          "properties": {
+            "columns": {
+              "items": {
+                "type": "string"
+              },
+              "minItems": 1,
+              "title": "Columns",
+              "type": "array"
+            },
+            "delimiter": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Delimiter"
+            },
+            "encoding": {
+              "title": "Encoding",
+              "type": "string"
+            },
+            "footerRowCount": {
+              "minimum": 0,
+              "title": "Footerrowcount",
+              "type": "integer"
+            },
+            "hasHeader": {
+              "title": "Hasheader",
+              "type": "boolean"
+            },
+            "headerRowIndex": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Headerrowindex"
+            },
+            "quoteChar": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Quotechar"
+            }
+          },
+          "required": [
+            "encoding",
+            "hasHeader",
+            "footerRowCount",
+            "columns"
+          ],
+          "title": "CsvSpecLayout",
+          "type": "object"
+        },
+        "SpecMappingEntry": {
+          "additionalProperties": false,
+          "properties": {
+            "sourceColumn": {
+              "title": "Sourcecolumn",
+              "type": "string"
+            },
+            "transform": {
+              "$ref": "#/$defs/SpecTransform"
+            }
+          },
+          "required": [
+            "sourceColumn",
+            "transform"
+          ],
+          "title": "SpecMappingEntry",
+          "type": "object"
+        },
+        "SpecTransform": {
+          "additionalProperties": true,
+          "description": "A transform instruction. Open on purpose - the **kinds** are a closed set validated by\n`mapping/transforms.parse`, which is the one place that knows their parameters, and duplicating\neleven parameter shapes here would be a second definition to keep in step.",
+          "properties": {
+            "kind": {
+              "title": "Kind",
+              "type": "string"
+            }
+          },
+          "required": [
+            "kind"
+          ],
+          "title": "SpecTransform",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "canonicalSchemaVersion": {
+          "title": "Canonicalschemaversion",
+          "type": "string"
+        },
+        "kind": {
+          "const": "csv",
+          "title": "Kind",
+          "type": "string"
+        },
+        "layout": {
+          "$ref": "#/$defs/CsvSpecLayout"
+        },
+        "mapping": {
+          "additionalProperties": {
+            "$ref": "#/$defs/SpecMappingEntry"
+          },
+          "minProperties": 1,
+          "title": "Mapping",
+          "type": "object"
+        }
+      },
+      "required": [
+        "canonicalSchemaVersion",
+        "kind",
+        "layout",
+        "mapping"
+      ],
+      "title": "CsvSpecDocument",
+      "type": "object"
+    }
+  ],
+  "title": "Mapping spec"
+}

@@ -1,0 +1,42 @@
+{
+  "manufacturers": [
+    {
+      "brandValues": [
+        "BLC",
+        "Bayline Creamery"
+      ],
+      "directVendorValues": [
+        "300388",
+        "Bayline Creamery"
+      ],
+      "name": "Bayline Creamery",
+      "redistributorOnly": true
+    },
+    {
+      "brandValues": [
+        "CPC",
+        "Cascade Provision Co"
+      ],
+      "directVendorValues": [
+        "300292",
+        "Cascade Provision Co"
+      ],
+      "name": "Cascade Provision Co",
+      "redistributorOnly": false
+    },
+    {
+      "brandValues": [
+        "NVF",
+        "Northvale Foods"
+      ],
+      "directVendorValues": [
+        "300145",
+        "Northvale Foods"
+      ],
+      "name": "Northvale Foods",
+      "redistributorOnly": false
+    }
+  ],
+  "note": "Fictional reference data for the demo distributor, generated from the same seed as the invoice fixtures. Loaded by scripts/seed_demo.py into customer_manufacturers.",
+  "seed": 20261003
+}

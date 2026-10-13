@@ -1,0 +1,179 @@
+{
+  "canonicalSchemaVersion": "1.0.0",
+  "kind": "csv",
+  "layout": {
+    "columns": [
+      "IVHDR01",
+      "CUSTNO",
+      "IVPSTDT",
+      "FLD017",
+      "BILTNO",
+      "ITMNBR",
+      "SHPUNT",
+      "UMCODE",
+      "BILTNM",
+      "RSRVD1",
+      "SELPRC",
+      "MFGPRT",
+      "LINAMT",
+      "FLD023",
+      "CLSCD1",
+      "SHPWGT",
+      "REMTNO",
+      "CSEMUL",
+      "ALWFLG",
+      "FLD041",
+      "ALWPRC"
+    ],
+    "delimiter": ",",
+    "encoding": "utf-8",
+    "footerRowCount": 0,
+    "hasHeader": true,
+    "headerRowIndex": 0,
+    "quoteChar": "\""
+  },
+  "mapping": {
+    "brand_manufacturer": {
+      "sourceColumn": "CLSCD1",
+      "transform": {
+        "kind": "map_values",
+        "table": [
+          {
+            "from": "BLC",
+            "to": "Bayline Creamery"
+          },
+          {
+            "from": "CPC",
+            "to": "Cascade Provision Co"
+          },
+          {
+            "from": "NVF",
+            "to": "Northvale Foods"
+          }
+        ]
+      }
+    },
+    "catch_weight_lbs": {
+      "sourceColumn": "SHPWGT",
+      "transform": {
+        "kind": "trim"
+      }
+    },
+    "customer_id": {
+      "sourceColumn": "BILTNO",
+      "transform": {
+        "kind": "trim"
+      }
+    },
+    "customer_name": {
+      "sourceColumn": "BILTNM",
+      "transform": {
+        "kind": "trim"
+      }
+    },
+    "deviated_price": {
+      "sourceColumn": "ALWPRC",
+      "transform": {
+        "kind": "trim"
+      }
+    },
+    "dist_item_id": {
+      "sourceColumn": "ITMNBR",
+      "transform": {
+        "kind": "trim"
+      }
+    },
+    "ext_amount": {
+      "sourceColumn": "LINAMT",
+      "transform": {
+        "kind": "trim"
+      }
+    },
+    "invoice_date": {
+      "sourceColumn": "IVPSTDT",
+      "transform": {
+        "kind": "cyymmdd_to_date"
+      }
+    },
+    "invoice_no": {
+      "sourceColumn": "IVHDR01",
+      "transform": {
+        "kind": "trim"
+      }
+    },
+    "invoice_vendor": {
+      "sourceColumn": "REMTNO",
+      "transform": {
+        "kind": "map_values",
+        "table": [
+          {
+            "from": "300145",
+            "to": "Northvale Foods"
+          },
+          {
+            "from": "300292",
+            "to": "Cascade Provision Co"
+          },
+          {
+            "from": "300388",
+            "to": "Bayline Creamery"
+          },
+          {
+            "from": "400771",
+            "to": "Midland Redistribution"
+          },
+          {
+            "from": "400882",
+            "to": "Keystone Supply Partners"
+          }
+        ]
+      }
+    },
+    "is_deviated": {
+      "sourceColumn": "ALWFLG",
+      "transform": {
+        "kind": "map_values",
+        "table": [
+          {
+            "from": "N",
+            "to": "false"
+          },
+          {
+            "from": "Y",
+            "to": "true"
+          }
+        ]
+      }
+    },
+    "mfr_item_code": {
+      "sourceColumn": "MFGPRT",
+      "transform": {
+        "kind": "trim"
+      }
+    },
+    "pack_size": {
+      "sourceColumn": "CSEMUL",
+      "transform": {
+        "kind": "trim"
+      }
+    },
+    "qty": {
+      "sourceColumn": "SHPUNT",
+      "transform": {
+        "kind": "trim"
+      }
+    },
+    "unit_price": {
+      "sourceColumn": "SELPRC",
+      "transform": {
+        "kind": "trim"
+      }
+    },
+    "uom": {
+      "sourceColumn": "UMCODE",
+      "transform": {
+        "kind": "upper"
+      }
+    }
+  }
+}

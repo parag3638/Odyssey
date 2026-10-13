@@ -1,0 +1,333 @@
+{
+  "calcCount": 18,
+  "calcLineCount": 48150,
+  "calcs": [
+    {
+      "amountUsd": "8506.04",
+      "basisQty": "47255.9400",
+      "contributedLineCount": 805,
+      "kind": "per_lb_billback",
+      "outOfScopeLineCount": 2232,
+      "periodEnd": "2026-01-31",
+      "periodStart": "2026-01-01",
+      "programExternalRef": "PG-BLC-LB",
+      "skippedLineCount": 14,
+      "skippedReasons": [
+        {
+          "lineCount": 14,
+          "reason": "missing_catch_weight"
+        }
+      ],
+      "uomBasis": "LB"
+    },
+    {
+      "amountUsd": "8249.68",
+      "basisQty": "45831.6500",
+      "contributedLineCount": 765,
+      "kind": "per_lb_billback",
+      "outOfScopeLineCount": 2030,
+      "periodEnd": "2026-02-28",
+      "periodStart": "2026-02-01",
+      "programExternalRef": "PG-BLC-LB",
+      "skippedLineCount": 11,
+      "skippedReasons": [
+        {
+          "lineCount": 11,
+          "reason": "missing_catch_weight"
+        }
+      ],
+      "uomBasis": "LB"
+    },
+    {
+      "amountUsd": "6595.11",
+      "basisQty": "36639.9900",
+      "contributedLineCount": 627,
+      "kind": "per_lb_billback",
+      "outOfScopeLineCount": 1675,
+      "periodEnd": "2026-03-31",
+      "periodStart": "2026-03-01",
+      "programExternalRef": "PG-BLC-LB",
+      "skippedLineCount": 16,
+      "skippedReasons": [
+        {
+          "lineCount": 16,
+          "reason": "missing_catch_weight"
+        }
+      ],
+      "uomBasis": "LB"
+    },
+    {
+      "amountUsd": "7913.79",
+      "basisQty": "43965.5400",
+      "contributedLineCount": 802,
+      "kind": "per_lb_billback",
+      "outOfScopeLineCount": 2239,
+      "periodEnd": "2026-04-30",
+      "periodStart": "2026-04-01",
+      "programExternalRef": "PG-BLC-LB",
+      "skippedLineCount": 6,
+      "skippedReasons": [
+        {
+          "lineCount": 6,
+          "reason": "missing_catch_weight"
+        }
+      ],
+      "uomBasis": "LB"
+    },
+    {
+      "amountUsd": "8383.05",
+      "basisQty": "46572.7300",
+      "contributedLineCount": 794,
+      "kind": "per_lb_billback",
+      "outOfScopeLineCount": 2190,
+      "periodEnd": "2026-05-31",
+      "periodStart": "2026-05-01",
+      "programExternalRef": "PG-BLC-LB",
+      "skippedLineCount": 10,
+      "skippedReasons": [
+        {
+          "lineCount": 10,
+          "reason": "missing_catch_weight"
+        }
+      ],
+      "uomBasis": "LB"
+    },
+    {
+      "amountUsd": "8910.60",
+      "basisQty": "49503.8500",
+      "contributedLineCount": 838,
+      "kind": "per_lb_billback",
+      "outOfScopeLineCount": 2355,
+      "periodEnd": "2026-06-30",
+      "periodStart": "2026-06-01",
+      "programExternalRef": "PG-BLC-LB",
+      "skippedLineCount": 13,
+      "skippedReasons": [
+        {
+          "lineCount": 13,
+          "reason": "missing_catch_weight"
+        }
+      ],
+      "uomBasis": "LB"
+    },
+    {
+      "amountUsd": "24414.30",
+      "basisQty": "27127.0000",
+      "contributedLineCount": 2240,
+      "kind": "per_case_volume",
+      "outOfScopeLineCount": 886,
+      "periodEnd": "2026-01-31",
+      "periodStart": "2026-01-01",
+      "programExternalRef": "PG-CPC-CS",
+      "skippedLineCount": 14,
+      "skippedReasons": [
+        {
+          "lineCount": 14,
+          "reason": "missing_pack_size"
+        }
+      ],
+      "uomBasis": "CS"
+    },
+    {
+      "amountUsd": "22702.50",
+      "basisQty": "25225.0000",
+      "contributedLineCount": 2041,
+      "kind": "per_case_volume",
+      "outOfScopeLineCount": 734,
+      "periodEnd": "2026-02-28",
+      "periodStart": "2026-02-01",
+      "programExternalRef": "PG-CPC-CS",
+      "skippedLineCount": 6,
+      "skippedReasons": [
+        {
+          "lineCount": 6,
+          "reason": "missing_pack_size"
+        }
+      ],
+      "uomBasis": "CS"
+    },
+    {
+      "amountUsd": "18419.40",
+      "basisQty": "20466.0000",
+      "contributedLineCount": 1701,
+      "kind": "per_case_volume",
+      "outOfScopeLineCount": 669,
+      "periodEnd": "2026-03-31",
+      "periodStart": "2026-03-01",
+      "programExternalRef": "PG-CPC-CS",
+      "skippedLineCount": 8,
+      "skippedReasons": [
+        {
+          "lineCount": 8,
+          "reason": "missing_pack_size"
+        }
+      ],
+      "uomBasis": "CS"
+    },
+    {
+      "amountUsd": "24835.50",
+      "basisQty": "27595.0000",
+      "contributedLineCount": 2230,
+      "kind": "per_case_volume",
+      "outOfScopeLineCount": 811,
+      "periodEnd": "2026-04-30",
+      "periodStart": "2026-04-01",
+      "programExternalRef": "PG-CPC-CS",
+      "skippedLineCount": 8,
+      "skippedReasons": [
+        {
+          "lineCount": 8,
+          "reason": "missing_pack_size"
+        }
+      ],
+      "uomBasis": "CS"
+    },
+    {
+      "amountUsd": "24372.00",
+      "basisQty": "27080.0000",
+      "contributedLineCount": 2216,
+      "kind": "per_case_volume",
+      "outOfScopeLineCount": 847,
+      "periodEnd": "2026-05-31",
+      "periodStart": "2026-05-01",
+      "programExternalRef": "PG-CPC-CS",
+      "skippedLineCount": 10,
+      "skippedReasons": [
+        {
+          "lineCount": 10,
+          "reason": "missing_pack_size"
+        }
+      ],
+      "uomBasis": "CS"
+    },
+    {
+      "amountUsd": "24544.80",
+      "basisQty": "27272.0000",
+      "contributedLineCount": 2254,
+      "kind": "per_case_volume",
+      "outOfScopeLineCount": 882,
+      "periodEnd": "2026-06-30",
+      "periodStart": "2026-06-01",
+      "programExternalRef": "PG-CPC-CS",
+      "skippedLineCount": 11,
+      "skippedReasons": [
+        {
+          "lineCount": 11,
+          "reason": "missing_pack_size"
+        }
+      ],
+      "uomBasis": "CS"
+    },
+    {
+      "amountUsd": "37286.25",
+      "basisQty": "29829.0000",
+      "contributedLineCount": 2398,
+      "kind": "per_case_volume",
+      "outOfScopeLineCount": 0,
+      "periodEnd": "2026-01-31",
+      "periodStart": "2026-01-01",
+      "programExternalRef": "PG-NVF-CS",
+      "skippedLineCount": 12,
+      "skippedReasons": [
+        {
+          "lineCount": 12,
+          "reason": "missing_pack_size"
+        }
+      ],
+      "uomBasis": "CS"
+    },
+    {
+      "amountUsd": "32498.75",
+      "basisQty": "25999.0000",
+      "contributedLineCount": 2137,
+      "kind": "per_case_volume",
+      "outOfScopeLineCount": 0,
+      "periodEnd": "2026-02-28",
+      "periodStart": "2026-02-01",
+      "programExternalRef": "PG-NVF-CS",
+      "skippedLineCount": 11,
+      "skippedReasons": [
+        {
+          "lineCount": 11,
+          "reason": "missing_pack_size"
+        }
+      ],
+      "uomBasis": "CS"
+    },
+    {
+      "amountUsd": "26495.00",
+      "basisQty": "21196.0000",
+      "contributedLineCount": 1718,
+      "kind": "per_case_volume",
+      "outOfScopeLineCount": 0,
+      "periodEnd": "2026-03-31",
+      "periodStart": "2026-03-01",
+      "programExternalRef": "PG-NVF-CS",
+      "skippedLineCount": 6,
+      "skippedReasons": [
+        {
+          "lineCount": 6,
+          "reason": "missing_pack_size"
+        }
+      ],
+      "uomBasis": "CS"
+    },
+    {
+      "amountUsd": "34563.75",
+      "basisQty": "27651.0000",
+      "contributedLineCount": 2259,
+      "kind": "per_case_volume",
+      "outOfScopeLineCount": 0,
+      "periodEnd": "2026-04-30",
+      "periodStart": "2026-04-01",
+      "programExternalRef": "PG-NVF-CS",
+      "skippedLineCount": 18,
+      "skippedReasons": [
+        {
+          "lineCount": 18,
+          "reason": "missing_pack_size"
+        }
+      ],
+      "uomBasis": "CS"
+    },
+    {
+      "amountUsd": "33092.50",
+      "basisQty": "26474.0000",
+      "contributedLineCount": 2209,
+      "kind": "per_case_volume",
+      "outOfScopeLineCount": 0,
+      "periodEnd": "2026-05-31",
+      "periodStart": "2026-05-01",
+      "programExternalRef": "PG-NVF-CS",
+      "skippedLineCount": 10,
+      "skippedReasons": [
+        {
+          "lineCount": 10,
+          "reason": "missing_pack_size"
+        }
+      ],
+      "uomBasis": "CS"
+    },
+    {
+      "amountUsd": "35865.00",
+      "basisQty": "28692.0000",
+      "contributedLineCount": 2371,
+      "kind": "per_case_volume",
+      "outOfScopeLineCount": 0,
+      "periodEnd": "2026-06-30",
+      "periodStart": "2026-06-01",
+      "programExternalRef": "PG-NVF-CS",
+      "skippedLineCount": 11,
+      "skippedReasons": [
+        {
+          "lineCount": 11,
+          "reason": "missing_pack_size"
+        }
+      ],
+      "uomBasis": "CS"
+    }
+  ],
+  "engineRules": "per-line quantisation, ROUND_HALF_EVEN, one multiplication per line",
+  "seed": 20261003,
+  "totalAmountUsd": "387648.02"
+}

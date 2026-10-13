@@ -1,0 +1,18 @@
+{
+  // Strict, with one deliberate exception documented below.
+  "include": ["src", "tests", "migrations", "scripts"],
+  "typeCheckingMode": "strict",
+  "pythonVersion": "3.12",
+  "venvPath": ".",
+  "venv": ".venv",
+  "reportMissingTypeStubs": true,
+  "reportUnnecessaryTypeIgnoreComment": true,
+
+  // This project's job is parsing untrusted ERP exports, so `src/lib` keeps runtime
+  // isinstance guards at its trust boundaries - money and date parsing in particular.
+  // pyright calls them unnecessary because the annotation says the bad type cannot
+  // arrive; annotations are not enforced at runtime, and a float reaching a money
+  // function is precisely the defect those guards exist to catch. Disabling the report
+  // once, here, with a reason beats six inline suppressions a reviewer must each judge.
+  "reportUnnecessaryIsInstance": "none"
+}
