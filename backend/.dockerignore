@@ -5,7 +5,3 @@ __pycache__/
 tests/
 .env
 .git/
-
-# Speedy Onboard backend - a separate service, built from its own folder (see
-# speedylabs/DEPLOY.md). Kept out of this app's image.
-speedylabs/
